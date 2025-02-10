@@ -1,0 +1,61 @@
+{
+  "races": ["人类", "精灵", "矮人", "兽人"],
+  "jobs": ["战士", "法师", "盗贼", "牧师"],
+  "specialSkills": ["火焰术", "隐身术", "治疗术", "冰霜术"],
+  "genders": ["男", "女"],
+  "bodyTypes": ["瘦弱", "健壮", "苗条", "魁梧"],
+  "hairColors": ["黑色", "金色", "红色", "蓝色"],
+  "eyeColors": ["蓝色", "绿色", "棕色", "紫色"],
+  "raceModifiers": {
+    "人类": {
+      "strength": 1,
+      "agility": 1,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "精灵": {
+      "strength": 0,
+      "agility": 2,
+      "intelligence": 2,
+      "charisma": 1
+    },
+    "矮人": {
+      "strength": 2,
+      "agility": 0,
+      "intelligence": 0,
+      "charisma": 1
+    },
+    "兽人": {
+      "strength": 2,
+      "agility": 1,
+      "intelligence": 0,
+      "charisma": 0
+    }
+  },
+  "jobModifiers": {
+    "战士": {
+      "strength": 2,
+      "agility": 1,
+      "intelligence": 0,
+      "charisma": 0
+    },
+    "法师": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 2,
+      "charisma": 1
+    },
+    "盗贼": {
+      "strength": 0,
+      "agility": 2,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "牧师": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": 2
+    }
+  }
+}

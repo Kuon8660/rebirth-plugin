@@ -1,0 +1,27 @@
+{
+  "name": "rebirth-plugin",
+  "version": "1.0.0",
+  "description": "A plugin for handling rebirth functionalities.",
+  "main": "test.js",
+  "author": "Your Name",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YourGitHubUsername/rebirth-plugin.git"
+  },
+  "keywords": [
+    "rebirth",
+    "plugin",
+    "nodejs"
+  ],
+  "scripts": {
+    "test": "test.js"
+  },
+  "dependencies": {
+    
+  },
+  "devDependencies": {
+    "jest": "^29.5.0"
+  }
+}
