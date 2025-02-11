@@ -173,7 +173,7 @@ export default class RebirthPlugin extends plugin {
     return `你的转生信息如下：
   种族: ${info.race}  职业: ${info.job}
   性别: ${info.gender}  体型: ${info.body_type || info.bodyType}
-  RPG属性: ${info.rpg_attributes || info.rpgAttributesString}
+  属性: ${info.rpg_attributes || info.rpgAttributesString}
   特殊技能: ${info.special_skill || info.specialSkill}
   发色: ${info.hair_color || info.hairColor}
   瞳色: ${info.eye_color || info.eyeColor}`;
