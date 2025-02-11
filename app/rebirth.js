@@ -53,7 +53,7 @@ function getRandomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 根据种族和职业生成RPG属性
+// 根据种族和职业生成Rpg属性
 function generateRpgAttributes(race, job) {
   const baseAttributes = {
     strength: Math.floor(Math.random() * 10) + 1,
@@ -93,16 +93,6 @@ function clearOldData() {
 }
 
 clearOldData(); // 初始调用
-
-/**
- * 获取at的id,没有则返回用户id
- * @param {string|string[]} at
- * @param {string} id
- * @returns {string}
- */
-export function getAtUid(at, id) {
-  return at || id;
-}
 
 export default class RebirthPlugin extends plugin {
   constructor() {
@@ -178,9 +168,7 @@ export default class RebirthPlugin extends plugin {
       }
     });
   }
-
-  // 新增函数：格式化转生信息
-  formatRebirthInfo(info) {
+    formatRebirthInfo(info) {
     return `你的转生信息如下：
   种族: ${info.race}
   职业: ${info.job}
