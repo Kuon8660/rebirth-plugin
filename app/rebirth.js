@@ -168,14 +168,13 @@ export default class RebirthPlugin extends plugin {
       }
     });
   }
-    formatRebirthInfo(info) {
+  // 新增函数：格式化转生信息
+  formatRebirthInfo(info) {
     return `你的转生信息如下：
-  种族: ${info.race}
-  职业: ${info.job}
+  种族: ${info.race}  职业: ${info.job}
+  性别: ${info.gender}  体型: ${info.body_type || info.bodyType}
   RPG属性: ${info.rpg_attributes || info.rpgAttributesString}
   特殊技能: ${info.special_skill || info.specialSkill}
-  性别: ${info.gender}
-  体型: ${info.body_type || info.bodyType}
   发色: ${info.hair_color || info.hairColor}
   瞳色: ${info.eye_color || info.eyeColor}`;
   }
