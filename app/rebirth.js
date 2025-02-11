@@ -4,17 +4,25 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-
 // 获取当前模块的目录名
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // 初始化数据库
 const dbPath = path.resolve(__dirname, '../data/rebirth.db');
+const dbDir = path.dirname(dbPath);
+
+// 检查并创建文件夹
+if (!fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir, { recursive: true });
+  log("info", `数据库文件夹不存在，正在创建: ${dbDir}`);
+}
+
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     log("error", `无法打开数据库: ${err.message}`);
   } else {
     log("info", "数据库连接成功");
+    // 初始化表结构
     db.run(`CREATE TABLE IF NOT EXISTS rebirth_info (
       user_id TEXT PRIMARY KEY,
       race TEXT,
@@ -26,7 +34,13 @@ const db = new sqlite3.Database(dbPath, (err) => {
       hair_color TEXT,
       eye_color TEXT,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
+    )`, (err) => {
+      if (err) {
+        log("error", `创建表失败: ${err.message}`);
+      } else {
+        log("info", "表已创建");
+      }
+    });
   }
 });
 
@@ -129,18 +143,10 @@ export default class RebirthPlugin extends plugin {
 
       if (row) {
         // 如果存在记录，返回记录信息
-        log("debug", `用户 ${targetUserId} 已有转生信息: ${JSON.stringify(row)}`); // 添加日志记录
         log("info", `用户 ${targetUserId} 已有转生信息`);
-        const replyMessage = `你的转生信息如下：
-  种族: ${row.race}
-  职业: ${row.job}
-  RPG属性: ${row.rpg_attributes}
-  特殊技能: ${row.special_skill}
-  性别: ${row.gender}
-  体型: ${row.body_type}
-  发色: ${row.hair_color}
-  瞳色: ${row.eye_color}`;
-        return this.reply(replyMessage, true, { at: targetUserId });
+        const replyMessage = this.formatRebirthInfo(row);
+        log("debug", this.formatRebirthInfo(row));
+        return this.reply(replyMessage, true, { at: targetUserId }); // 修改: 确保回复消息内容正确传递
       } else {
         // 如果不存在记录，生成新的转生信息
         const race = getRandomElement(config.races);
@@ -164,18 +170,30 @@ export default class RebirthPlugin extends plugin {
             }
 
             log("info", `用户 ${targetUserId} 生成了新的转生信息: 种族=${race}, 职业=${job}, RPG属性=${rpgAttributesString}, 特殊技能=${specialSkill}, 性别=${gender}, 体型=${bodyType}, 发色=${hairColor}, 瞳色=${eyeColor}`);
-            const replyMessage = `你的转生信息如下：
-  种族: ${race}
-  职业: ${job}
-  RPG属性: ${rpgAttributesString}
-  特殊技能: ${specialSkill}
-  性别: ${gender}
-  体型: ${bodyType}
-  发色: ${hairColor}
-  瞳色: ${eyeColor}`;
+            const replyMessage = this.formatRebirthInfo({
+              race, job, rpgAttributesString, specialSkill, gender, bodyType, hairColor, eyeColor
+            });
             return this.reply(replyMessage, true, { at: targetUserId });
           });
       }
     });
+  }
+
+  // 新增函数：格式化转生信息
+  formatRebirthInfo(info) {
+    return `你的转生信息如下：
+  种族: ${info.race}
+  职业: ${info.job}
+  RPG属性: ${info.rpg_attributes || info.rpgAttributesString}
+  特殊技能: ${info.special_skill || info.specialSkill}
+  性别: ${info.gender}
+  体型: ${info.body_type || info.bodyType}
+  发色: ${info.hair_color || info.hairColor}
+  瞳色: ${info.eye_color || info.eyeColor}`;
+  }
+
+  // 新增函数：发送回复
+  sendReply(message, targetUserId) {
+    return this.reply(message, true, { at: targetUserId });
   }
 }
