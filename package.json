@@ -1,14 +1,14 @@
 {
   "name": "rebirth-plugin",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "description": "A plugin for handling rebirth functionalities.",
-  "main": "test.js",
-  "author": "Your Name",
+  "main": "index.js",
+  "author": "Kuon8660",
   "type": "module",
-  "license": "MIT",
+  "license": "GPL-3.0-only",
   "repository": {
     "type": "git",
-    "url": "https://github.com/YourGitHubUsername/rebirth-plugin.git"
+    "url": "https://github.com/Kuon8660/rebirth-plugin.git"
   },
   "keywords": [
     "rebirth",
