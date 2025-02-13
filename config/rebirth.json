@@ -1,10 +1,47 @@
 {
-  "races": ["人类", "精灵", "矮人", "兽人"],
-  "jobs": ["战士", "法师", "盗贼", "牧师"],
-  "specialSkills": ["火焰术", "隐身术", "治疗术", "冰霜术", "龙卷风斩", "治愈之光", "影步", "元素操控", "激光炮", "心灵控制", "时间操控", "力场生成"],
+  "races": [
+    "人类", "精灵", "矮人", "兽人",
+    "天使", "恶魔", "龙族", "亡灵",
+    "血族", "元素生物", "半人马",
+    "娜迦", "妖精", "狼人", "哥布林",
+    "蜥蜴人", "巨魔", "幻形灵",
+    "星灵", "机械族", "树人", "海妖"
+  ],
+
+  "jobs": [
+    "战士", "法师", "盗贼", "牧师",
+    "圣骑士", "德鲁伊", "死灵法师",
+    "吟游诗人", "炼金术士", "狂战士",
+    "游侠", "咒术师", "元素使",
+    "先知", "暗黑骑士", "时空旅者",
+    "符文大师", "奥术师", "神射手",
+    "契约者", "恶魔猎手", "剑圣",
+    "召唤师", "机关术士", "幻术师",
+    "影舞者", "龙骑士", "灵能者",
+    "瘟疫医生", "占星师", "灵魂行者",
+    "魔药学者", "秘法工匠", "枪械师"
+  ],
+  "specialSkills": [
+    "火焰术", "隐身术", "治疗术", "冰霜术", "龙卷风斩", "治愈之光",
+    "影步", "元素操控", "激光炮", "心灵控制", "时间操控", "力场生成",
+    "空间撕裂", "灭世陨星", "圣光裁决", "深渊吞噬", "量子坍缩", "灵魂剥离",
+    "终焉审判", "虚空召唤", "血月狂乱", "时空冻结", "神圣庇佑", "暗影湮灭",
+    "星辰坠落", "维度切割", "熵能爆破", "不朽再生", "法则改写", "创世之光",
+    "混沌漩涡", "灵魂共振"
+  ],
   "genders": ["男", "女"],
   "bodyTypes": ["瘦弱", "健壮", "苗条", "魁梧"],
-  "hairColors": ["黑色", "金色", "红色", "蓝色"],
+  "hairColors": [
+    "黑色", "金色", "红色", "蓝色",
+    "深棕色", "浅棕色", "咖啡棕",
+    "银灰色", "奶奶灰", "雪白色",
+    "薰衣草紫", "葡萄紫", "樱花粉",
+    "玫瑰粉", "草木绿", "薄荷绿",
+    "橙红色", "酒红色", "巧克力色",
+    "亚麻色", "蜜糖色", "蓝黑色",
+    "紫红色", "玫瑰金", "香槟金",
+    "蓝绿渐变", "粉紫渐变"
+  ],
   "eyeColors": ["蓝色", "绿色", "棕色", "紫色"],
   "raceModifiers": {
     "人类": {
@@ -30,6 +67,114 @@
       "agility": 1,
       "intelligence": 0,
       "charisma": 0
+    },
+    "天使": {
+      "strength": 1,
+      "agility": 2,
+      "intelligence": 3,
+      "charisma": 4
+    },
+    "恶魔": {
+      "strength": 4,
+      "agility": 3,
+      "intelligence": 2,
+      "charisma": -1
+    },
+    "龙族": {
+      "strength": 5,
+      "agility": 1,
+      "intelligence": 4,
+      "charisma": 3
+    },
+    "亡灵": {
+      "strength": 2,
+      "agility": 2,
+      "intelligence": 3,
+      "charisma": -2
+    },
+    "血族": {
+      "strength": 3,
+      "agility": 4,
+      "intelligence": 2,
+      "charisma": 3
+    },
+    "元素生物": {
+      "strength": 0,
+      "agility": 1,
+      "intelligence": 5,
+      "charisma": 1
+    },
+    "半人马": {
+      "strength": 3,
+      "agility": 3,
+      "intelligence": 1,
+      "charisma": 2
+    },
+    "娜迦": {
+      "strength": 2,
+      "agility": 4,
+      "intelligence": 2,
+      "charisma": 1
+    },
+    "妖精": {
+      "strength": 0,
+      "agility": 5,
+      "intelligence": 3,
+      "charisma": 4
+    },
+    "狼人": {
+      "strength": 4,
+      "agility": 3,
+      "intelligence": 0,
+      "charisma": -1
+    },
+    "哥布林": {
+      "strength": 1,
+      "agility": 2,
+      "intelligence": 1,
+      "charisma": -2
+    },
+    "蜥蜴人": {
+      "strength": 3,
+      "agility": 2,
+      "intelligence": 0,
+      "charisma": -1
+    },
+    "巨魔": {
+      "strength": 5,
+      "agility": 0,
+      "intelligence": -1,
+      "charisma": -3
+    },
+    "幻形灵": {
+      "strength": 0,
+      "agility": 3,
+      "intelligence": 4,
+      "charisma": 5
+    },
+    "星灵": {
+      "strength": 1,
+      "agility": 2,
+      "intelligence": 5,
+      "charisma": 3
+    },
+    "机械族": {
+      "strength": 4,
+      "agility": 4,
+      "intelligence": 4,
+      "charisma": 0
+    },
+    "树人": {
+      "strength": 4,
+      "agility": 0,
+      "intelligence": 3,
+      "charisma": 2
+    },
+    "海妖": {
+      "strength": 1,
+      "agility": 4,
+      "intelligence": 3,
+      "charisma": 4
     }
   },
   "jobModifiers": {
@@ -56,6 +201,186 @@
       "agility": 0,
       "intelligence": 1,
       "charisma": 2
+    },
+    "圣骑士": {
+      "strength": 3,
+      "agility": 1,
+      "intelligence": 1,
+      "charisma": 3
+    },
+    "德鲁伊": {
+      "strength": 1,
+      "agility": 2,
+      "intelligence": 3,
+      "charisma": 2
+    },
+    "死灵法师": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 4,
+      "charisma": -2
+    },
+    "吟游诗人": {
+      "strength": 0,
+      "agility": 2,
+      "intelligence": 2,
+      "charisma": 4
+    },
+    "炼金术士": {
+      "strength": 0,
+      "agility": 1,
+      "intelligence": 4,
+      "charisma": 1
+    },
+    "狂战士": {
+      "strength": 4,
+      "agility": 2,
+      "intelligence": -1,
+      "charisma": 0
+    },
+    "游侠": {
+      "strength": 1,
+      "agility": 4,
+      "intelligence": 2,
+      "charisma": 1
+    },
+    "咒术师": {
+      "strength": 0,
+      "agility": 1,
+      "intelligence": 3,
+      "charisma": 2
+    },
+    "元素使": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 5,
+      "charisma": 1
+    },
+    "先知": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 4,
+      "charisma": 3
+    },
+    "暗黑骑士": {
+      "strength": 4,
+      "agility": 2,
+      "intelligence": 1,
+      "charisma": -1
+    },
+    "时空旅者": {
+      "strength": 0,
+      "agility": 3,
+      "intelligence": 4,
+      "charisma": 2
+    },
+    "符文大师": {
+      "strength": 1,
+      "agility": 1,
+      "intelligence": 4,
+      "charisma": 2
+    },
+    "奥术师": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 5,
+      "charisma": 1
+    },
+    "神射手": {
+      "strength": 1,
+      "agility": 4,
+      "intelligence": 2,
+      "charisma": 1
+    },
+    "契约者": {
+      "strength": 0,
+      "agility": 2,
+      "intelligence": 3,
+      "charisma": 3
+    },
+    "恶魔猎手": {
+      "strength": 3,
+      "agility": 4,
+      "intelligence": 1,
+      "charisma": 0
+    },
+    "剑圣": {
+      "strength": 3,
+      "agility": 4,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "召唤师": {
+      "strength": 0,
+      "agility": 1,
+      "intelligence": 4,
+      "charisma": 2
+    },
+    "机关术士": {
+      "strength": 2,
+      "agility": 2,
+      "intelligence": 4,
+      "charisma": 0
+    },
+    "幻术师": {
+      "strength": 0,
+      "agility": 2,
+      "intelligence": 3,
+      "charisma": 3
+    },
+    "影舞者": {
+      "strength": 1,
+      "agility": 5,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "龙骑士": {
+      "strength": 4,
+      "agility": 2,
+      "intelligence": 1,
+      "charisma": 2
+    },
+    "灵能者": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 4,
+      "charisma": 3
+    },
+    "瘟疫医生": {
+      "strength": 0,
+      "agility": 1,
+      "intelligence": 3,
+      "charisma": -1
+    },
+    "占星师": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 4,
+      "charisma": 3
+    },
+    "灵魂行者": {
+      "strength": -1,
+      "agility": 1,
+      "intelligence": 3,
+      "charisma": 4
+    },
+    "魔药学者": {
+      "strength": 0,
+      "agility": 1,
+      "intelligence": 4,
+      "charisma": 2
+    },
+    "秘法工匠": {
+      "strength": 2,
+      "agility": 0,
+      "intelligence": 4,
+      "charisma": 1
+    },
+    "枪械师": {
+      "strength": 2,
+      "agility": 4,
+      "intelligence": 2,
+      "charisma": 0
     }
   }
 }

@@ -33,7 +33,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
       body_type TEXT,
       hair_color TEXT,
       eye_color TEXT,
-      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+      created_at DATETIME DEFAULT (datetime('now','localtime'))
     )`, (err) => {
       if (err) {
         log("error", `创建表失败: ${err.message}`);
