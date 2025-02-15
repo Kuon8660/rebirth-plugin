@@ -24,7 +24,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
     log("info", "数据库连接成功");
     // 初始化表结构
     db.run(`CREATE TABLE IF NOT EXISTS rebirth_info (
-      user_id TEXT PRIMARY KEY,
+      user_id INTEGER PRIMARY KEY,
       race TEXT,
       job TEXT,
       rpg_attributes TEXT,
@@ -112,17 +112,11 @@ export default class RebirthPlugin extends plugin {
   }
 
   async rebirth() {
-    // 获取当前用户的ID
-    const userId = this.e.user_id;
+   
+    // 如果at用户ID，则使用at用户作为目标用户ID，否则使用当前用户ID
+    const targetUserId = this.e.at || this.e.user_id;
 
-    // 获取消息中@的用户ID
-    const message = this.e.at;
-
-    // 记录消息内容到调试日志
-    log("debug", message);
-
-    // 如果消息内容存在，则使用消息内容作为目标用户ID，否则使用当前用户ID
-    const targetUserId = message || userId;
+    log("info", `异世界转生用户为：${targetUserId}`);
 
     // 查询数据库
     db.get('SELECT * FROM rebirth_info WHERE user_id = ?', [targetUserId], (err, row) => {

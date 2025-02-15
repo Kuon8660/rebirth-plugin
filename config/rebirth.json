@@ -19,7 +19,10 @@
     "召唤师", "机关术士", "幻术师",
     "影舞者", "龙骑士", "灵能者",
     "瘟疫医生", "占星师", "灵魂行者",
-    "魔药学者", "秘法工匠", "枪械师"
+    "魔药学者", "秘法工匠", "枪械师",
+    "铁匠", "农夫", "商人", "学者",
+    "猎人", "渔夫", "厨师", "医生",
+    "建筑师", "工程师"
   ],
   "specialSkills": [
     "火焰术", "隐身术", "治疗术", "冰霜术", "龙卷风斩", "治愈之光",
@@ -380,6 +383,66 @@
       "strength": 2,
       "agility": 4,
       "intelligence": 2,
+      "charisma": 0
+    },
+    "铁匠": {
+      "strength": 1,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": 0
+    },
+    "农夫": {
+      "strength": 1,
+      "agility": 0,
+      "intelligence": 0,
+      "charisma": 1
+    },
+    "商人": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "学者": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "猎人": {
+      "strength": 1,
+      "agility": 1,
+      "intelligence": 0,
+      "charisma": 0
+    },
+    "渔夫": {
+      "strength": 1,
+      "agility": 1,
+      "intelligence": 0,
+      "charisma": 0
+    },
+    "厨师": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "医生": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "建筑师": {
+      "strength": 1,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": 0
+    },
+    "工程师": {
+      "strength": 1,
+      "agility": 0,
+      "intelligence": 1,
       "charisma": 0
     }
   }
