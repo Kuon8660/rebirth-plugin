@@ -1,17 +1,22 @@
-import { log } from "./log.js";
-import sqlite3 from 'sqlite3';
 import fs from 'fs';
 import path from 'path';
+import sqlite3 from 'sqlite3';
+import { log } from "./log.js";
 import { fileURLToPath } from 'url';
+import { reRender } from './reRender.js';
 
-// 获取当前模块的目录名
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// 初始化数据库
 const dbPath = path.resolve(__dirname, '../data/rebirth.db');
 const dbDir = path.dirname(dbPath);
 
-// 检查并创建文件夹
+const rebirthPath = path.resolve(__dirname, '../config/rebirth.json');
+const rebirth = JSON.parse(fs.readFileSync(rebirthPath, 'utf8'));
+
+const configPath = path.resolve(__dirname, '../config/config.json');
+const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+
+// 检查数据库文件是否存在，并创建文件夹
 if (!fs.existsSync(dbDir)) {
   fs.mkdirSync(dbDir, { recursive: true });
   log("info", `数据库文件夹不存在，正在创建: ${dbDir}`);
@@ -27,13 +32,16 @@ const db = new sqlite3.Database(dbPath, (err) => {
       user_id INTEGER PRIMARY KEY,
       race TEXT,
       job TEXT,
-      rpg_attributes TEXT,
-      special_skill TEXT,
       gender TEXT,
-      body_type TEXT,
-      hair_color TEXT,
-      eye_color TEXT,
-      created_at DATETIME DEFAULT (datetime('now','localtime'))
+      bodyType TEXT,
+      hairColor TEXT,
+      eyeColor TEXT,
+      strength INTEGER,
+      agility INTEGER,
+      intelligence INTEGER,
+      charisma INTEGER,
+      specialSkill TEXT,
+      createdTime DATETIME DEFAULT (datetime('now','localtime'))
     )`, (err) => {
       if (err) {
         log("error", `创建表失败: ${err.message}`);
@@ -43,36 +51,6 @@ const db = new sqlite3.Database(dbPath, (err) => {
     });
   }
 });
-
-// 加载配置文件
-const configPath = path.resolve(__dirname, '../config/rebirth.json');
-const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-
-// 随机选择一个数组中的元素
-function getRandomElement(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
-
-// 根据种族和职业生成Rpg属性
-function generateRpgAttributes(race, job) {
-  const baseAttributes = {
-    strength: Math.floor(Math.random() * 10) + 1,
-    agility: Math.floor(Math.random() * 10) + 1,
-    intelligence: Math.floor(Math.random() * 10) + 1,
-    charisma: Math.floor(Math.random() * 10) + 1
-  };
-
-  // 根据种族和职业调整属性
-  const raceModifiers = config.raceModifiers[race] || {};
-  const jobModifiers = config.jobModifiers[job] || {};
-
-  baseAttributes.strength += (raceModifiers.strength || 0) + (jobModifiers.strength || 0);
-  baseAttributes.agility += (raceModifiers.agility || 0) + (jobModifiers.agility || 0);
-  baseAttributes.intelligence += (raceModifiers.intelligence || 0) + (jobModifiers.intelligence || 0);
-  baseAttributes.charisma += (raceModifiers.charisma || 0) + (jobModifiers.charisma || 0);
-
-  return baseAttributes;
-}
 
 // 清除每天凌晨的数据
 function clearOldData() {
@@ -94,6 +72,10 @@ function clearOldData() {
 
 clearOldData(); // 初始调用
 
+//声明异世界转生数据
+const data = { title: '异世界转生', content: '测试内容' }
+
+// 异世界转生插件配置
 export default class RebirthPlugin extends plugin {
   constructor() {
     super({
@@ -103,6 +85,7 @@ export default class RebirthPlugin extends plugin {
       priority: 5000,
       rule: [
         {
+          //异世界转生触发关键词
           reg: "^异世界转生$",
           fnc: "rebirth",
           permission: "all",
@@ -110,71 +93,102 @@ export default class RebirthPlugin extends plugin {
       ]
     });
   }
-
   async rebirth() {
-   
+
     // 如果at用户ID，则使用at用户作为目标用户ID，否则使用当前用户ID
     const targetUserId = this.e.at || this.e.user_id;
+    log("info", `异世界转生开始处理，用户为：${targetUserId}`);
 
-    log("info", `异世界转生用户为：${targetUserId}`);
+    // 获取用户名称和群名称，以便处理群聊和私聊名称不一样
+    const userName = await Bot.pickFriend(this.e.at || this.e.user_id).getInfo();
+    const groupUserName = await this.e.group.pickMember(targetUserId).getInfo();
+    data.userName = groupUserName.card || userName.nickname;
+    await getRebirthInfo(targetUserId);
+    //如果设置为true，则使用图片生成，否则使用文本生成
+    if (config.useimage == true) {
+      try {
+        const image = await reRender(data);
+        this.reply(segment.image(image));
+      } catch (e) {
+        this.reply(`图片生成失败: ${e.message}`);
+      }
+    } else {
+      this.reply(this.formatRebirthInfo(data), true, { at: targetUserId });
+    }
+  }
+  // 新增函数：格式化转生信息
+  formatRebirthInfo(info) {
+    return `你的转生信息如下：
+  种族: ${data.race}  职业: ${info.job}
+  性别: ${info.gender}  体型: ${info.bodyType}
+  属性: 力量: ${info.strength} 敏捷: ${info.agility} 智力: ${info.intelligence} 魅力: ${info.charisma}
+  特殊技能: ${info.specialSkill}
+  发色: ${info.hairColor}
+  瞳色: ${info.eyeColor}`;
+  }
+}
 
-    // 查询数据库
+
+// 随机选择一个数组中的元素
+function getRandomElement(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+// 获取异世界转生信息
+async function getRebirthInfo(targetUserId) {
+  return new Promise((resolve, reject) => {
     db.get('SELECT * FROM rebirth_info WHERE user_id = ?', [targetUserId], (err, row) => {
       if (err) {
         log("error", `查询数据库失败: ${err.message}`);
-        return this.reply("查询数据库失败，请稍后再试", true, { at: true });
+        // 这里应该返回reject而不是this.reply
+        return reject("查询数据库失败，请稍后再试");
       }
 
       if (row) {
         // 如果存在记录，返回记录信息
         log("info", `用户 ${targetUserId} 已有转生信息`);
-        const replyMessage = this.formatRebirthInfo(row);
-        log("debug", this.formatRebirthInfo(row));
-        return this.reply(replyMessage, true, { at: targetUserId }); // 修改: 确保回复消息内容正确传递
+        data.race = row.race;
+        data.job = row.job;
+        data.gender = row.gender;
+        data.bodyType = row.bodyType;
+        data.hairColor = row.hairColor;
+        data.eyeColor = row.eyeColor;
+        data.strength = row.strength;
+        data.agility = row.agility;
+        data.intelligence = row.intelligence;
+        data.charisma = row.charisma;
+        data.specialSkill = row.specialSkill;
+        resolve(data);
       } else {
         // 如果不存在记录，生成新的转生信息
-        const race = getRandomElement(config.races);
-        const job = getRandomElement(config.jobs);
-        const rpgAttributes = generateRpgAttributes(race, job);
-        const specialSkill = getRandomElement(config.specialSkills);
-        const gender = getRandomElement(config.genders);
-        const bodyType = getRandomElement(config.bodyTypes);
-        const hairColor = getRandomElement(config.hairColors);
-        const eyeColor = getRandomElement(config.eyeColors);
+        data.race = getRandomElement(rebirth.races);
+        data.job = getRandomElement(rebirth.jobs);
+        data.gender = getRandomElement(rebirth.genders);
+        data.bodyType = getRandomElement(rebirth.bodyTypes);
+        data.hairColor = getRandomElement(rebirth.hairColors);
+        data.eyeColor = getRandomElement(rebirth.eyeColors);
+        data.specialSkill = getRandomElement(rebirth.specialSkills);
 
-        const rpgAttributesString = `力量: ${rpgAttributes.strength}, 敏捷: ${rpgAttributes.agility}, 智力: ${rpgAttributes.intelligence}, 魅力: ${rpgAttributes.charisma}`;
+        // 根据种族和职业调整属性
+        const raceModifiers = rebirth.raceModifiers[data.race] || {};
+        const jobModifiers = rebirth.jobModifiers[data.job] || {};
+        data.strength = Math.floor(Math.random() * 10) + 1 + (raceModifiers.strength || 0) + (jobModifiers.strength || 0);
+        data.agility = Math.floor(Math.random() * 10) + 1 + (raceModifiers.agility || 0) + (jobModifiers.agility || 0);
+        data.intelligence = Math.floor(Math.random() * 10) + 1 + (raceModifiers.intelligence || 0) + (jobModifiers.intelligence || 0);
+        data.charisma = Math.floor(Math.random() * 10) + 1 + (raceModifiers.charisma || 0) + (jobModifiers.charisma || 0);
 
         // 插入数据库
-        db.run('INSERT INTO rebirth_info (user_id, race, job, rpg_attributes, special_skill, gender, body_type, hair_color, eye_color) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [targetUserId, race, job, rpgAttributesString, specialSkill, gender, bodyType, hairColor, eyeColor],
+        db.run('INSERT INTO rebirth_info (user_id, race, job, strength, agility, intelligence, charisma, specialSkill, gender, bodyType, hairColor, eyeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [targetUserId, data.race, data.job, data.strength, data.agility, data.intelligence, data.charisma, data.specialSkill, data.gender, data.bodyType, data.hairColor, data.eyeColor],
           (err) => {
             if (err) {
               log("error", `插入数据库失败: ${err.message}`);
-              return this.reply("插入数据库失败，请稍后再试", true, { at: true });
+              return reject("插入数据库失败，请稍后再试");
             }
 
-            log("info", `用户 ${targetUserId} 生成了新的转生信息: 种族=${race}, 职业=${job}, RPG属性=${rpgAttributesString}, 特殊技能=${specialSkill}, 性别=${gender}, 体型=${bodyType}, 发色=${hairColor}, 瞳色=${eyeColor}`);
-            const replyMessage = this.formatRebirthInfo({
-              race, job, rpgAttributesString, specialSkill, gender, bodyType, hairColor, eyeColor
-            });
-            return this.reply(replyMessage, true, { at: targetUserId });
+            log("info", `用户 ${targetUserId} 生成了新的转生信息: 种族=${data.race}, 职业=${data.job}, RPG属性=${data.strength},${data.agility},${data.intelligence},${data.charisma}, 特殊技能=${data.specialSkill}, 性别=${data.gender}, 体型=${data.bodyType}, 发色=${data.hairColor}, 瞳色=${data.eyeColor}`);
+            resolve(data);
           });
       }
     });
-  }
-  // 新增函数：格式化转生信息
-  formatRebirthInfo(info) {
-    return `你的转生信息如下：
-  种族: ${info.race}  职业: ${info.job}
-  性别: ${info.gender}  体型: ${info.body_type || info.bodyType}
-  属性: ${info.rpg_attributes || info.rpgAttributesString}
-  特殊技能: ${info.special_skill || info.specialSkill}
-  发色: ${info.hair_color || info.hairColor}
-  瞳色: ${info.eye_color || info.eyeColor}`;
-  }
-
-  // 新增函数：发送回复
-  sendReply(message, targetUserId) {
-    return this.reply(message, true, { at: targetUserId });
-  }
+  });
 }
