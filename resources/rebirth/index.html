@@ -1,51 +1,94 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ title }}</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            padding: 20px;
+            background-color: #041132;
+            padding: 10px;
+            width: 460px;
+            height: 738px;
+            align-items: center;
+            margin: 0;
         }
+
         .card {
-            background-color: #fff;
+            background-color: #ffffffc2;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            max-width: 400px;
-            margin: 0 auto;
+            height: 698px;
+            width: auto;
+            display: block;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
         }
+
+        .baseinfo {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            font-size: 36px;
+            max-width: 420px;
+        }
+
         .avatar {
-            width: 100px;
-            height: 100px;
+            width: 128px;
+            height: 128px;
             border-radius: 50%;
-            margin: 0 auto 20px;
+            border-inline: 2px solid #a05c02;
+            margin: 0 0;
+            margin-right: 20px;
             display: block;
         }
+
         .info {
-            text-align: center;
+            text-align: left;
+            /* 文字向左对齐 */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            width: 100%;
         }
+
         .info p {
             margin: 10px 0;
+            background-color: #dad292; /* 添加底色 */
+            border-radius: 10px; /* 添加圆角 */
+            font-size: 24px;
+            width: 45%;
+            /* 每个 p 标签占据 45% 的宽度，留出一些间距 */
         }
     </style>
 </head>
+
 <body>
     <div class="card">
-        <img class="avatar" src="{{ avatarUrl }}" alt="头像">
+        <div class="baseinfo">
+            <img class="avatar" src="{{ avatarUrl }}" alt="头像">
+            <p>{{ userName }}</p>
+        </div>
         <div class="info">
             <p>种族: {{ race }}</p>
             <p>职业: {{ job }}</p>
             <p>性别: {{ gender }}</p>
             <p>体型: {{ bodyType }}</p>
-            <p>属性: {{ rpgAttributes }}</p>
-            <p>特殊技能: {{ specialSkill }}</p>
             <p>发色: {{ hairColor }}</p>
             <p>瞳色: {{ eyeColor }}</p>
+            <p>属性: </p>
+            <P></P>
+            <P>力量: {{ strength }}</P>
+            <P>敏捷: {{ agility }}</P>
+            <P>智力: {{ intelligence }}</P>
+            <P>魅力: {{ charisma }}</P>
+            <p>特殊技能: {{ specialSkill }}</p>
+
         </div>
     </div>
 </body>
+
 </html>

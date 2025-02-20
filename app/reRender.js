@@ -17,6 +17,9 @@ const renderHtmlToImage = async (htmlPath, outputPath) => {
   
   const page = await browser.newPage();
   log('debug', `新页面已创建，正在加载HTML文件：${htmlPath}`);
+
+  // 设置页面视口大小，宽度为480px
+  await page.setViewport({ width: 480, height: 758 });
   
   await page.goto(`file://${htmlPath}`, { waitUntil: 'networkidle0' });
   log('debug', `HTML文件加载完成，开始截图：${outputPath}`);
@@ -46,7 +49,7 @@ export const reRender = async (data) => {
 
     // 生成图片路径
     const now = new Date();
-    const dateString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+    const dateString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}-${data.userName}`;
     const outputPath = `./plugins/rebirth-plugin/tmp/rebirth/${dateString}.png`;
 
     // 渲染 HTML 为图片

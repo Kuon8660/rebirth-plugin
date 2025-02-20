@@ -103,9 +103,12 @@ export default class RebirthPlugin extends plugin {
     const userName = await Bot.pickFriend(this.e.at || this.e.user_id).getInfo();
     const groupUserName = await this.e.group.pickMember(targetUserId).getInfo();
     data.userName = groupUserName.card || userName.nickname;
+    log("info", `异世界转生用户名为：${data.userName}`);
+    data.avatarUrl = await Bot.pickFriend(targetUserId).getAvatarUrl();
+    log("debug", `异世界转生用户头像为：${data.avatarUrl}`);
     await getRebirthInfo(targetUserId);
     //如果设置为true，则使用图片生成，否则使用文本生成
-    if (config.useimage == true) {
+    if (config.useimage == "true") {
       try {
         const image = await reRender(data);
         this.reply(segment.image(image));
