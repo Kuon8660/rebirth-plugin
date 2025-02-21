@@ -15,6 +15,14 @@
             margin: 0;
         }
 
+        .title {
+            color: #000000;
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+
         .card {
             background-color: #ffffffc2;
             border-radius: 10px;
@@ -34,6 +42,7 @@
             justify-content: flex-start;
             font-size: 36px;
             max-width: 420px;
+            margin-bottom: 20px;
         }
 
         .avatar {
@@ -52,15 +61,23 @@
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
-            width: 100%;
+            width: 410px;
+            font-size: 24px;
+            padding: 5px;
+            background-color: #b5964a1f;
+            border-radius: 10px;
+        }
+
+        .infotitle {
+            text-align: left;
+            display: flex;
         }
 
         .info p {
-            margin: 10px 0;
-            background-color: #dad292; /* 添加底色 */
-            border-radius: 10px; /* 添加圆角 */
+            margin: 0 0;
             font-size: 24px;
             width: 45%;
+            padding: 5px;
             /* 每个 p 标签占据 45% 的宽度，留出一些间距 */
         }
     </style>
@@ -68,24 +85,25 @@
 
 <body>
     <div class="card">
+        <div class="title">{{ title }}</div>
         <div class="baseinfo">
             <img class="avatar" src="{{ avatarUrl }}" alt="头像">
             <p>{{ userName }}</p>
         </div>
         <div class="info">
+            <div class="info">基础信息</div>
             <p>种族: {{ race }}</p>
             <p>职业: {{ job }}</p>
             <p>性别: {{ gender }}</p>
             <p>体型: {{ bodyType }}</p>
             <p>发色: {{ hairColor }}</p>
             <p>瞳色: {{ eyeColor }}</p>
-            <p>属性: </p>
-            <P></P>
+            <div class="info">属性</div>
             <P>力量: {{ strength }}</P>
             <P>敏捷: {{ agility }}</P>
             <P>智力: {{ intelligence }}</P>
             <P>魅力: {{ charisma }}</P>
-            <p>特殊技能: {{ specialSkill }}</p>
+            <div class="info">特殊技能: {{ specialSkill }}</div>
 
         </div>
     </div>
