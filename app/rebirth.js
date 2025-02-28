@@ -40,6 +40,7 @@ const db = new sqlite3.Database(dbPath, (err) => {
       agility INTEGER,
       intelligence INTEGER,
       charisma INTEGER,
+      luckValue INTEGER,
       specialSkill TEXT,
       createdTime DATETIME DEFAULT (datetime('now','localtime'))
     )`, (err) => {
@@ -125,6 +126,7 @@ export default class RebirthPlugin extends plugin {
   种族: ${data.race}  职业: ${info.job}
   性别: ${info.gender}  体型: ${info.bodyType}
   属性: 力量: ${info.strength} 敏捷: ${info.agility} 智力: ${info.intelligence} 魅力: ${info.charisma}
+  幸运值: ${info.luckValue}
   特殊技能: ${info.specialSkill}
   发色: ${info.hairColor}
   瞳色: ${info.eyeColor}`;
@@ -149,6 +151,7 @@ async function getRebirthInfo(targetUserId) {
       if (row) {
         // 如果存在记录，返回记录信息
         log("info", `用户 ${targetUserId} 已有转生信息`);
+        data.user_id = targetUserId;
         data.race = row.race;
         data.job = row.job;
         data.gender = row.gender;
@@ -158,10 +161,12 @@ async function getRebirthInfo(targetUserId) {
         data.strength = row.strength;
         data.agility = row.agility;
         data.intelligence = row.intelligence;
+        data.luckValue = row.luckValue;
         data.charisma = row.charisma;
         data.specialSkill = row.specialSkill;
         resolve(data);
       } else {
+        data.user_id = targetUserId;
         // 如果不存在记录，生成新的转生信息
         data.race = getRandomElement(rebirth.races);
         data.job = getRandomElement(rebirth.jobs);
@@ -170,6 +175,7 @@ async function getRebirthInfo(targetUserId) {
         data.hairColor = getRandomElement(rebirth.hairColors);
         data.eyeColor = getRandomElement(rebirth.eyeColors);
         data.specialSkill = getRandomElement(rebirth.specialSkills);
+        data.luckValue = Math.floor(Math.random() * 100) + 1;
 
         // 根据种族和职业调整属性
         const raceModifiers = rebirth.raceModifiers[data.race] || {};
@@ -180,15 +186,15 @@ async function getRebirthInfo(targetUserId) {
         data.charisma = Math.floor(Math.random() * 10) + 1 + (raceModifiers.charisma || 0) + (jobModifiers.charisma || 0);
 
         // 插入数据库
-        db.run('INSERT INTO rebirth_info (user_id, race, job, strength, agility, intelligence, charisma, specialSkill, gender, bodyType, hairColor, eyeColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [targetUserId, data.race, data.job, data.strength, data.agility, data.intelligence, data.charisma, data.specialSkill, data.gender, data.bodyType, data.hairColor, data.eyeColor],
+        db.run('INSERT INTO rebirth_info (user_id, race, job, strength, agility, intelligence, charisma, specialSkill, gender, bodyType, hairColor, eyeColor,luckValue) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [targetUserId, data.race, data.job, data.strength, data.agility, data.intelligence, data.charisma, data.specialSkill, data.gender, data.bodyType, data.hairColor, data.eyeColor, data.luckValue],
           (err) => {
             if (err) {
               log("error", `插入数据库失败: ${err.message}`);
               return reject("插入数据库失败，请稍后再试");
             }
 
-            log("info", `用户 ${targetUserId} 生成了新的转生信息: 种族=${data.race}, 职业=${data.job}, RPG属性=${data.strength},${data.agility},${data.intelligence},${data.charisma}, 特殊技能=${data.specialSkill}, 性别=${data.gender}, 体型=${data.bodyType}, 发色=${data.hairColor}, 瞳色=${data.eyeColor}`);
+            log("info", `用户 ${targetUserId} 生成了新的转生信息: 种族=${data.race}, 职业=${data.job}, RPG属性=${data.strength},${data.agility},${data.intelligence},${data.charisma}, 特殊技能=${data.specialSkill}, 性别=${data.gender}, 体型=${data.bodyType}, 发色=${data.hairColor}, 瞳色=${data.eyeColor}, 幸运值=${data.luckValue}`);
             resolve(data);
           });
       }

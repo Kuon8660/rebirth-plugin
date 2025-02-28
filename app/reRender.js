@@ -49,7 +49,7 @@ export const reRender = async (data) => {
 
     // 生成图片路径
     const now = new Date();
-    const dateString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}-${data.userName}`;
+    const dateString = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}-${data.user_id}`;
     const outputPath = `./plugins/rebirth-plugin/tmp/rebirth/${dateString}.png`;
 
     // 渲染 HTML 为图片
