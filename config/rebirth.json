@@ -5,7 +5,11 @@
     "血族", "元素生物", "半人马",
     "娜迦", "妖精", "狼人", "哥布林",
     "蜥蜴人", "巨魔", "幻形灵",
-    "星灵", "机械族", "树人", "海妖"
+    "星灵", "机械族", "树人", "海妖",
+    "狐族", "猫族", "狗族",
+    "人偶", "羽人族", "兔人", "鱼人",
+    "狗头人", "牛头人", "巨人", "龙裔",
+    "半精灵", "魅魔", "巫妖", "元素裔"
   ],
 
   "jobs": [
@@ -26,7 +30,8 @@
   ],
   "specialSkills": [
     "火焰术", "隐身术", "治疗术", "冰霜术", "龙卷风斩", "治愈之光",
-    "影步", "元素操控", "激光炮", "心灵控制", "时间操控", "力场生成",
+    "影步", "元素操控", "激光炮", "风刃术", "水疗术", "雷击术", "石肤术", 
+    "幻影步", "毒雾术", "光明护盾","心灵控制", "时间操控", "力场生成",
     "空间撕裂", "灭世陨星", "圣光裁决", "深渊吞噬", "量子坍缩", "灵魂剥离",
     "终焉审判", "虚空召唤", "血月狂乱", "时空冻结", "神圣庇佑", "暗影湮灭",
     "星辰坠落", "维度切割", "熵能爆破", "不朽再生", "法则改写", "创世之光",
@@ -178,6 +183,96 @@
       "agility": 4,
       "intelligence": 3,
       "charisma": 4
+    },
+    "狐族": {
+      "strength": 0,
+      "agility": 2,
+      "intelligence": 1,
+      "charisma": 2
+    },
+    "猫族": {
+      "strength": 0,
+      "agility": 3,
+      "intelligence": 1,
+      "charisma": 2
+    },
+    "狗族": {
+      "strength": 1,
+      "agility": 3,
+      "intelligence": 0,
+      "charisma": 1
+    },
+    "人偶": {
+      "strength": 0,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "羽人族": {
+      "strength": 0,
+      "agility": 4,
+      "intelligence": 2,
+      "charisma": 3
+    },
+    "兔人": {
+      "strength": 0,
+      "agility": 4,
+      "intelligence": 1,
+      "charisma": 2
+    },
+    "鱼人": {
+      "strength": 1,
+      "agility": 2,
+      "intelligence": 1,
+      "charisma": 1
+    },
+    "狗头人": {
+      "strength": 2,
+      "agility": 2,
+      "intelligence": 0,
+      "charisma": -1
+    },
+    "牛头人": {
+      "strength": 3,
+      "agility": 1,
+      "intelligence": 0,
+      "charisma": -1
+    },
+    "巨人": {
+      "strength": 5,
+      "agility": 0,
+      "intelligence": 1,
+      "charisma": -2
+    },
+    "龙裔": {
+      "strength": 5,
+      "agility": 1,
+      "intelligence": 4,
+      "charisma": 3
+    },
+    "半精灵": {
+      "strength": 1,
+      "agility": 2,
+      "intelligence": 2,
+      "charisma": 2
+    },
+    "魅魔": {
+      "strength": 3,
+      "agility": 3,
+      "intelligence": 2,
+      "charisma": 3
+    },
+    "巫妖": {
+      "strength": 2,
+      "agility": 2,
+      "intelligence": 4,
+      "charisma": -2
+    },
+    "元素裔": {
+      "strength": 0,
+      "agility": 1,
+      "intelligence": 5,
+      "charisma": 1
     }
   },
   "jobModifiers": {
