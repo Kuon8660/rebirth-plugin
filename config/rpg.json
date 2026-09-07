@@ -1,0 +1,27 @@
+{
+  "_readme": [
+    "异世界等级·类RPG系统 配置文件（独立于转生数据）",
+    "等级 Lv0 → Lv100。经验曲线递增，每日签到一次 +10 经验，约 500 天可满级。",
+    "每 5 级获得 1 属性点，可分配到 力量/敏捷/智力/魅力（加成到转生四维展示）。",
+    "",
+    "字段说明:",
+    "  maxLevel           : 满级等级",
+    "  expPerCheckin      : 每次签到获得经验(每日限一次，两个转生命令共享)",
+    "  expPower / expCoeff: 曲线系数。expToNext(level)=round(coeff*(level+1)^power)",
+    "                       调小 coeff → 更早满级；调大 → 更晚。默认约 500 天满级",
+    "  minExpToNext       : 单级升级所需经验的下限(即初始 0→1 的经验)。默认 5",
+    "  attrPointEveryLevels: 每几级发 1 属性点（默认每5级）",
+    "",
+    "每日签到入口：发「异世界转生」或「#ai异世界转生」成功后自动签到(每日一次)。",
+    "相关指令：",
+    "  #异世界加点 力量 2       分配属性点",
+    "  #异世界等级 / #异世界面板 查看等级/经验/属性点"
+  ],
+
+  "maxLevel": 100,
+  "expPerCheckin": 10,
+  "expCoeff": 0.081,
+  "expPower": 1.6,
+  "minExpToNext": 5,
+  "attrPointEveryLevels": 5
+}
