@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import sqlite3 from 'sqlite3';
 import { log } from './log.js';
+import { loadConfig } from './config.js';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -9,8 +10,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dbPath = path.resolve(__dirname, '../data/rebirth.db');
 const dbDir = path.dirname(dbPath);
 
-const rebirthPath = path.resolve(__dirname, '../config/rebirth.json');
-const rebirth = JSON.parse(fs.readFileSync(rebirthPath, 'utf8'));
+// 用 config.js 统一 ensure+读取 rebirth.json（缺失自动从 rebirth.default.json 生成）
+const rebirth = loadConfig('rebirth.json');
 
 // 确保数据库目录存在
 if (!fs.existsSync(dbDir)) {

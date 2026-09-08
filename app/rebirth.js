@@ -1,13 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import { log } from "./log.js";
+import { loadConfig } from './config.js';
 import { reRender } from './reRender.js';
 import { getOrCreateRebirthInfo } from './rebirthCore.js';
 import { afterRebirth } from './rpgHook.js';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const config = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../config/config.json'), 'utf8'));
+// 用 config.js 统一 ensure+读取 config.json（缺失自动从 config.default.json 生成）
+const config = loadConfig('config.json');
 
 // 异世界转生插件配置（普通转生卡）
 export default class RebirthPlugin extends plugin {

@@ -1,0 +1,102 @@
+{
+  "_readme": [
+    "AI 绘图配置文件【默认模板】 —— 即梦(Jimeng) 文生图后端",
+    "本文件入库仅作默认配置模板：含 base_url/model/提示词等非敏感项。",
+    "【安全】config/ai.json 是运行时实际读取的配置，已被 .gitignore 忽略、不随仓库分发。",
+    "首次启动插件会自动从本模板复制生成 config/ai.json；请在其 sessionid 填入你的即梦账号。",
+    "切勿把真实 sessionid 写回本 default 模板或提交到 git。",
+    "参考 siliconflow-plugin 中即梦绘图的实现。",
+    "",
+    "接入方式：连接本机即梦网关(代理)，用即梦账号的 Sessionid 作为 Bearer 鉴权。",
+    "  - 在硅基流动插件(siliconflow-plugin)里即梦默认 base_url = http://localhost:5100",
+    "  - 即梦 Sessionid 一般来自即梦网页/抓包；可通过硅基插件锅巴面板填写",
+    "  - 本模块只请求即梦的「文生图」，用你的转生信息画角色立绘",
+    "",
+    "字段说明:",
+    "  enable      : 是否启用。false 时发 #ai异世界转生 只提示未启用",
+    "  base_url    : 即梦网关地址(含协议端口，不带 /v1)。默认 http://localhost:5100",
+    "  sessionid   : 即梦账号 Sessionid(填入后开启) —— 必填，空则请求会失败",
+    "                支持单个字符串，也支持数组填多个：[\"key1\", \"key2\"]",
+    "                多个会轮流使用(round-robin)，单个失效/限流会自动切换下一个",
+    "  model       : 即梦模型，常用 jimeng-5.0 / jimeng-4.5 等",
+    "  ratio       : 画幅比例。角色立绘建议竖版，如 3:4",
+    "  resolution  : 分辨率档位，即梦支持 1k / 2k / 4k",
+    "  negative_prompt: 负面提示词(即梦接口字段)",
+    "",
+    "触发命令：#ai异世界转生（不区分大小写）",
+    "完整流程：①生成/复用当日转生信息入库 → ②用即梦按转生信息画角色 →",
+    "③图存 resources/rebirth/ai/{uid}_{date}.png 且路径写库(aiImage) →",
+    "④把该图作为 HTML 整卡背景 → ⑤渲染后发送。同人同日去重，重复触发命中缓存不重复调用。"
+  ],
+
+  "enable": true,
+
+  "jimeng": {
+    "base_url": "http://localhost:5100",
+    "sessionid": "",
+    "// sessionid 示例(多账号轮换/负载均衡，任选其一)": "[\"账号A的sessionid\", \"账号B的sessionid\", \"账号C的sessionid\"]",
+    "model": "jimeng-4.7",
+    "ratio": "3:4",
+    "resolution": "2k",
+    "negative_prompt": "lowres, bad anatomy, bad hands, text, error, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, normal quality, jpeg artifacts, signature, watermark, username, blurry",
+    "timeoutMs": 3600000
+  },
+
+  "prompt": {
+    "stylePrefix": "best quality, masterpiece, highly detailed, fantasy RPG character art, anime style, full body, dynamic action pose, energetic motion",
+    "includeSkill": false,
+    "suffix": ", game splash art, impactful combat pose, dynamic motion, detailed scenic illustration background, vibrant colors"
+  },
+
+  "_labelEnMap": {
+    "说明": "把转生信息里的中文标签映射成英文生成词；映射不到的会原样保留（即梦也支持中文关键词）。可按需增删。",
+    "race": {
+      "人类": "human", "精灵": "high elf", "矮人": "dwarf", "兽人": "orc",
+      "天使": "angel", "恶魔": "demon", "龙族": "dragonkin", "亡灵": "undead",
+      "血族": "vampire", "元素生物": "elemental being", "半人马": "centaur",
+      "娜迦": "naga", "妖精": "fairy", "狼人": "werewolf", "哥布林": "goblin",
+      "蜥蜴人": "lizardfolk", "巨魔": "troll", "幻形灵": "changeling",
+      "星灵": "astral spirit", "机械族": "mechanical being", "树人": "treant",
+      "海妖": "siren", "狐族": "fox spirit", "猫族": "catfolk", "狗族": "dogfolk",
+      "人偶": "doll puppet", "羽人族": "harpy", "兔人": "rabbitfolk",
+      "鱼人": "fishfolk", "狗头人": "kobold", "牛头人": "minotaur",
+      "巨人": "giant", "龙裔": "dragonborn", "半精灵": "half-elf",
+      "魅魔": "succubus", "巫妖": "lich", "元素裔": "genasi"
+    },
+    "job": {
+      "战士": "warrior", "法师": "wizard", "盗贼": "rogue", "牧师": "priest",
+      "圣骑士": "paladin", "圣女": "saintess", "大主教": "archbishop", "教皇": "pope",
+      "德鲁伊": "druid", "死灵法师": "necromancer", "吟游诗人": "bard",
+      "炼金术士": "alchemist", "狂战士": "berserker", "游侠": "ranger",
+      "咒术师": "cursemancer", "元素使": "elementalist", "先知": "prophet",
+      "暗黑骑士": "dark knight", "时空旅者": "chronomancer", "符文大师": "runemaster",
+      "奥术师": "arcanist", "神射手": "sharpshooter", "契约者": "pact summoner",
+      "恶魔猎手": "demon hunter", "剑圣": "blade master", "召唤师": "summoner",
+      "机关术士": "mechanist", "幻术师": "illusionist", "影舞者": "shadow dancer",
+      "龙骑士": "dragon knight", "灵能者": "psion", "瘟疫医生": "plague doctor",
+      "占星师": "astrologer", "灵魂行者": "soul shaman", "魔药学者": "potion scholar",
+      "秘法工匠": "arcane artificer", "枪械师": "gunslinger", "铁匠": "blacksmith",
+      "农夫": "farmer", "商人": "merchant", "学者": "scholar", "猎人": "hunter",
+      "渔夫": "fisherman", "厨师": "chef", "医生": "doctor", "建筑师": "architect",
+      "工程师": "engineer", "魔法少女": "magical girl"
+    },
+    "gender": { "男": "male", "女": "female" },
+    "bodyType": { "瘦弱": "slender", "健壮": "muscular", "苗条": "slim", "魁梧": "burly" },
+    "hairColor": {
+      "黑色": "black hair", "金色": "golden hair", "红色": "red hair", "蓝色": "blue hair",
+      "深棕色": "dark brown hair", "浅棕色": "light brown hair", "咖啡棕": "coffee brown hair",
+      "银灰色": "silver gray hair", "奶奶灰": "grandma gray hair", "雪白色": "snow white hair",
+      "薰衣草紫": "lavender hair", "葡萄紫": "grape purple hair", "樱花粉": "cherry blossom pink hair",
+      "玫瑰粉": "rose pink hair", "草木绿": "leaf green hair", "薄荷绿": "mint green hair",
+      "橙红色": "orange-red hair", "酒红色": "wine red hair", "巧克力色": "chocolate hair",
+      "亚麻色": "flaxen hair", "蜜糖色": "honey hair", "蓝黑色": "blue-black hair",
+      "紫红色": "magenta hair", "玫瑰金": "rose gold hair", "香槟金": "champagne gold hair",
+      "蓝绿渐变": "blue-green gradient hair", "粉紫渐变": "pink-purple gradient hair"
+    },
+    "eyeColor": {
+      "蓝色": "blue eyes", "绿色": "green eyes", "棕色": "brown eyes", "紫色": "purple eyes",
+      "褐色": "hazel eyes", "金色": "golden eyes", "黑色": "black eyes",
+      "红色": "red eyes", "琥珀色": "amber eyes", "异色瞳": "heterochromia eyes"
+    }
+  }
+}

@@ -1,4 +1,17 @@
+# ===== 依赖 / 运行时产物 =====
+node_modules/
 data/
-app/apptest.js
 tmp/
 resources/rebirth/ai/
+
+# ===== 本地文档（不入库） =====
+docs/
+
+# ===== 运行时配置文件（含敏感 sessionid，不入库） =====
+# 实际生效的是 config/*.json；仓库内只保留 *.default.json 默认模板
+# （config.js 检测缺失时会从 *.default.json 自动复制生成 config/*.json）
+config/*.json
+!config/*.default.json
+
+# ===== 开发测试草稿 =====
+app/apptest.js

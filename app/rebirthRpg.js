@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import sqlite3 from 'sqlite3';
 import { log } from './log.js';
+import { loadConfig } from './config.js';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -11,7 +12,7 @@ const rpgDbPath = path.resolve(__dirname, '../data/rpg.db');
 const rpgDbDir = path.dirname(rpgDbPath);
 
 // ---------- 独立配置 ----------
-const rpgCfgPath = path.resolve(__dirname, '../config/rpg.json');
+// 先内建默认值，再用 config.js 统一 ensure+读取 rpg.json（缺失自动从 rpg.default.json 生成）
 let cfg = {
   maxLevel: 100,
   expPerCheckin: 10,
@@ -22,7 +23,7 @@ let cfg = {
   startLevel: 0,
 };
 try {
-  cfg = { ...cfg, ...JSON.parse(fs.readFileSync(rpgCfgPath, 'utf8')) };
+  cfg = { ...cfg, ...loadConfig('rpg.json') };
 } catch (err) {
   log('error', `加载 RPG 配置文件失败: ${err.message}`);
 }

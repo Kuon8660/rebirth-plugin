@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { log } from './log.js';
+import { loadConfig } from './config.js';
 import { reRender } from './reRender.js';
 import { getOrCreateRebirthInfo, updateAiImage } from './rebirthCore.js';
 import { afterRebirth } from './rpgHook.js';
@@ -9,10 +10,12 @@ import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // ---------- 配置加载 ----------
-const aiConfigPath = path.resolve(__dirname, '../config/ai.json');
+// 用 config.js 统一 ensure+读取 ai.json；缺失自动从 ai.default.json 生成（sessionid 为空），
+// 且 ai.json 已被 .gitignore 忽略、不随仓库分发，避免真实 sessionid 泄露。
+// 读取失败/文件异常时兜底为未启用（enable:false），不影响插件其它命令。
 let aiConfig = { enable: false };
 try {
-  aiConfig = JSON.parse(fs.readFileSync(aiConfigPath, 'utf8'));
+  aiConfig = loadConfig('ai.json', { enable: false });
 } catch (err) {
   log('error', `加载 AI 配置文件失败: ${err.message}`);
 }
