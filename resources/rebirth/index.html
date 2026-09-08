@@ -22,22 +22,44 @@
             position: relative;
         }
 
+        /* AI 立绘整卡背景层（有 AI 图时覆盖 body 底色） */
+        #aiBg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: cover;
+            border-radius: 10px;
+            z-index: 0;
+        }
+
         .title {
             color: #000000;
             font-size: 36px;
             text-align: center;
             margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.6);
         }
 
 
         .card {
-            background-color: #ffffffc2;
+            background-color: #ffffff99;
             border-radius: 10px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            height: 698px;
+            height: auto;
             width: auto;
             display: block;
+            position: absolute;
+            bottom: 0px;
+            left: 10px;
+            right: 10px;
+            z-index: 1;
             flex-direction: column;
             align-items: center;
             justify-content: center;
@@ -47,19 +69,87 @@
             display: flex;
             align-items: center;
             justify-content: flex-start;
-            font-size: 36px;
+            font-size: 30px;
             max-width: 420px;
-            margin-bottom: 20px;
+            margin-bottom: 0px;
         }
 
         .avatar {
-            width: 128px;
-            height: 128px;
+            width: 72px;
+            height: 72px;
             border-radius: 50%;
             border-inline: 2px solid #a05c02;
             margin: 0 0;
             margin-right: 20px;
             display: block;
+        }
+
+        .name-col {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .name-col .username {
+            margin: 0;
+            line-height: 1.15;
+        }
+
+        .level-tag {
+            display: inline-block;
+            margin: 4px 0 0 0;
+            font-size: 17px;
+            color: #7a4b00;
+            background: #ffe9a8;
+            padding: 1px 10px;
+            border-radius: 9px;
+            text-shadow: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 等级右侧的经验条：Lv 徽章 + 填充条 + 进度数字 在同一行 */
+        .exp-row {
+            display: flex;
+            align-items: center;
+            margin-top: 6px;
+            width: 100%;
+        }
+
+        .exp-row .level-tag {
+            margin: 0 8px 0 0;
+            flex-shrink: 0;
+            font-size: 15px;
+            padding: 1px 8px;
+        }
+
+        .exp-track {
+            flex: 1;
+            height: 10px;
+            /* 空槽底色：实一点的深金，经验为 0 时也能清楚看出是一条经验槽 */
+            background: rgba(216, 158, 60, 0.95);
+            border-radius: 6px;
+            overflow: hidden;
+            min-width: 40px;
+        }
+
+        .exp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffd76a, #ffb13d);
+            border-radius: 6px;
+            width: 0%;
+            /* 经验为 0(0%) 时仍显示一“点”填充，避免完全空不可见 */
+            min-width: 7px;
+        }
+
+        .exp-text {
+            margin-left: 8px;
+            font-size: 13px;
+            color: #5a3d0e;
+            font-weight: bold;
+            white-space: nowrap;
         }
 
         .info {
@@ -69,7 +159,7 @@
             flex-wrap: wrap;
             justify-content: space-between;
             width: 410px;
-            font-size: 24px;
+            font-size: 20px;
             padding: 5px;
             background-color: #b5964a1f;
             border-radius: 10px;
@@ -82,7 +172,7 @@
 
         .info p {
             margin: 0 0;
-            font-size: 24px;
+            font-size: 20px;
             width: 45%;
             padding: 5px;
             /* 每个 p 标签占据 45% 的宽度，留出一些间距 */
@@ -94,9 +184,10 @@
             color: #fff;
             text-shadow: 1px 1px 1px #000;
             margin: 0 0 10px 0;
-            bottom: 10px;
+            bottom: 0px;
             position: absolute;
             width: 460px;
+            z-index: 2;
         }
 
         .version {
@@ -108,11 +199,28 @@
 </head>
 
 <body>
+    <!-- 有 AI 立绘时：以 AI 图铺满作为整卡背景；无 AI 图时该层不输出，body 用纯色底色 -->
+    {{if aiImageDataUri}}
+    <div id="aiBg" style="background-image: url('{{aiImageDataUri}}');"></div>
+    {{/if}}
+
+    <div class="title">{{ title }}</div>
+
     <div class="card">
-        <div class="title">{{ title }}</div>
         <div class="baseinfo">
             <img class="avatar" src="{{ avatarUrl }}" alt="头像">
-            <p>{{ userName }}</p>
+            <div class="name-col">
+                <p class="username">{{ userName }}</p>
+                <div class="exp-row">
+                    <span class="level-tag">Lv.{{ level }}</span>
+                    <div class="exp-track"><div class="exp-fill" style="width: {{expPct}}%;"></div></div>
+                    {{if maxed}}
+                    <span class="exp-text">MAX</span>
+                    {{else}}
+                    <span class="exp-text">{{ exp }}/{{ expNext }}</span>
+                    {{/if}}
+                </div>
+            </div>
         </div>
         <div class="info">
             <div class="info">基础信息</div>
@@ -123,16 +231,16 @@
             <p>发色: {{ hairColor }}</p>
             <p>瞳色: {{ eyeColor }}</p>
             <div class="info">属性</div>
-            <P>力量: {{ strength }}</P>
-            <P>敏捷: {{ agility }}</P>
-            <P>智力: {{ intelligence }}</P>
-            <P>魅力: {{ charisma }}</P>
-            <P>幸运值: {{ luckValue }}</P>
+            <p>力量: {{ strength }}</p>
+            <p>敏捷: {{ agility }}</p>
+            <p>智力: {{ intelligence }}</p>
+            <p>魅力: {{ charisma }}</p>
+            <p>幸运值: {{ luckValue }}</p>
             <div class="info">特殊技能: {{ specialSkill }}</div>
-
         </div>
     </div>
-    <div class="plugininfo">Created By <span class="version"> rebirth-plugin v0.6.0 </span> </div>
+
+    <div class="plugininfo">Created By <span class="version"> rebirth-plugin v0.7.0 </span> </div>
 </body>
 
 </html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <style>
+        @font-face {
+            font-family: 'YaYuanGuYin';
+            src: url('../../../plugins/rebirth-plugin/resources/rebirth/YaYuanGuYin-1.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        body {
+            font-family: 'YaYuanGuYin', Arial, sans-serif;
+            background-color: #e1a56c;
+            padding: 10px;
+            width: 460px;
+            height: 738px;
+            align-items: center;
+            margin: 0;
+            position: relative;
+        }
+
+        .title {
+            color: #000000;
+            font-size: 36px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+
+        .card {
+            background-color: #ffffffc2;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            height: 698px;
+            width: auto;
+            display: block;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .baseinfo {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            font-size: 36px;
+            max-width: 420px;
+            margin-bottom: 20px;
+        }
+
+        .avatar {
+            width: 128px;
+            height: 128px;
+            border-radius: 50%;
+            border-inline: 2px solid #a05c02;
+            margin: 0 0;
+            margin-right: 20px;
+            display: block;
+        }
+
+        .info {
+            text-align: left;
+            /* 文字向左对齐 */
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            width: 410px;
+            font-size: 24px;
+            padding: 5px;
+            background-color: #b5964a1f;
+            border-radius: 10px;
+        }
+
+        .infotitle {
+            text-align: left;
+            display: flex;
+        }
+
+        .info p {
+            margin: 0 0;
+            font-size: 24px;
+            width: 45%;
+            padding: 5px;
+            /* 每个 p 标签占据 45% 的宽度，留出一些间距 */
+        }
+
+        .plugininfo {
+            font-size: 16px;
+            text-align: center;
+            color: #fff;
+            text-shadow: 1px 1px 1px #000;
+            margin: 0 0 10px 0;
+            bottom: 10px;
+            position: absolute;
+            width: 460px;
+        }
+
+        .version {
+            color: #a58ed3;
+            display: inline-block;
+            padding: 0 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="card">
+        <div class="title">{{ title }}</div>
+        <div class="baseinfo">
+            <img class="avatar" src="{{ avatarUrl }}" alt="头像">
+            <p>{{ userName }}</p>
+        </div>
+        <div class="info">
+            <div class="info">基础信息</div>
+            <p>种族: {{ race }}</p>
+            <p>职业: {{ job }}</p>
+            <p>性别: {{ gender }}</p>
+            <p>体型: {{ bodyType }}</p>
+            <p>发色: {{ hairColor }}</p>
+            <p>瞳色: {{ eyeColor }}</p>
+            <div class="info">属性</div>
+            <P>力量: {{ strength }}</P>
+            <P>敏捷: {{ agility }}</P>
+            <P>智力: {{ intelligence }}</P>
+            <P>魅力: {{ charisma }}</P>
+            <P>幸运值: {{ luckValue }}</P>
+            <div class="info">特殊技能: {{ specialSkill }}</div>
+
+        </div>
+    </div>
+    <div class="plugininfo">Created By <span class="version"> rebirth-plugin v0.7.0 </span> </div>
+</body>
+
+</html>

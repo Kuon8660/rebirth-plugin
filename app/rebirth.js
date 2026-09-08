@@ -35,14 +35,19 @@ export default class RebirthPlugin extends plugin {
     const base = await getOrCreateRebirthInfo(targetUserId);
     log("info", `异世界转生用户名为：${targetUserId}`);
 
-    // RPG 签到 + 把属性点加成叠加到四维（失败不阻断）
-    const { info, notice } = await afterRebirth(targetUserId, base);
+    // RPG 签到 + 把属性点加成叠加到四维（失败不阻断）；level/exp/expNext 为 RPG 等级与经验进度
+    const { info, notice, level, exp, expNext, expPct, maxed } = await afterRebirth(targetUserId, base);
 
     // 组装渲染/文本数据
     const renderData = {
       user_id: targetUserId,
       title: '异世界转生',
       content: '测试内容',
+      level,
+      exp,
+      expNext,
+      expPct,
+      maxed,
       race: info.race,
       job: info.job,
       gender: info.gender,
@@ -72,7 +77,8 @@ export default class RebirthPlugin extends plugin {
         }
         renderData.userName = nick;
         renderData.avatarUrl = await Promise.resolve(Bot.pickFriend(targetUserId).getAvatarUrl?.() ?? '').catch(() => '');
-        const image = await reRender(renderData);
+        // 默认「异世界转生」用经典无 AI 卡模板（不透明卡、无等级/经验条）
+        const image = await reRender(renderData, './plugins/rebirth-plugin/resources/rebirth/index_noai.html');
         this.reply(segment.image(image));
       } catch (e) {
         this.reply(`图片生成失败: ${e.message}`);

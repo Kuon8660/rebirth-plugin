@@ -72,12 +72,27 @@ function buildPrompt(info) {
 //   headers: Authorization: Bearer {sessionid}
 //   body   : { model, prompt, ratio, resolution, negative_prompt }
 //   响应   : data[]，每项含 url
+//
+// 多 Sessionid 支持：ai.json 的 jimeng.sessionid 可以是单个字符串
+//   "sessionid": "abc123"
+//   也可以是一个数组（多个即梦账号轮流使用 / 负载均衡 / 失效自动切换）
+//   "sessionid": ["abc123", "def456", "ghi789"]
+// 每次请求按 round-robin 顺序取一个；若某个 key 请求失败(非 2xx)，自动尝试下一个，全部失败才报错。
+// 轮询游标存模块级变量，不跨重启持久化（重启后从头开始）。
+let jimengSessionIndex = 0;
+function jimengSessionList(jm) {
+  const raw = jm?.sessionid;
+  const arr = (Array.isArray(raw) ? raw : [raw])
+    .map((s) => (typeof s === 'string' ? s.trim() : ''))
+    .filter(Boolean);
+  return arr;
+}
 async function requestJimengImage(prompt, negativePrompt) {
   const jm = aiConfig.jimeng || {};
   const baseUrl = (jm.base_url || 'http://localhost:5100').replace(/\/+$/, '');
-  const sessionid = (jm.sessionid || '').trim();
+  const sessions = jimengSessionList(jm);
 
-  if (!sessionid) {
+  if (!sessions.length) {
     throw new Error('未配置即梦 Sessionid，请在 config/ai.json 的 jimeng.sessionid 中填写。');
   }
 
@@ -91,44 +106,56 @@ async function requestJimengImage(prompt, negativePrompt) {
   };
   // 过滤 undefined
   const body = Object.fromEntries(Object.entries(requestBody).filter(([, v]) => v !== undefined));
+  const timeoutMs = jm.timeoutMs || 3600000;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), jm.timeoutMs || 3600000);
-  log('info', `即梦文生图请求已发送: ${endpoint} (model=${body.model})`);
+  // 从当前游标取起，遍历全部 sessionid，遇到成功即返回；全失败则抛最后一个错误
+  const attempts = sessions.length;
+  let lastErr = null;
+  for (let i = 0; i < attempts; i++) {
+    const sessionid = sessions[(jimengSessionIndex + i) % attempts];
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    let resp;
+    try {
+      log('info', `即梦文生图请求已发送: ${endpoint} (model=${body.model}, session 用第 ${((jimengSessionIndex + i) % attempts) + 1}/${attempts} 个)`);
+      resp = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${sessionid}`,
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal,
+      });
+    } catch (err) {
+      clearTimeout(timer);
+      lastErr = new Error(err.name === 'AbortError' ? '请求超时' : err.message);
+      continue; // 网络/超时错误 → 换下一个 key 重试
+    } finally {
+      clearTimeout(timer);
+    }
 
-  let resp;
-  try {
-    resp = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${sessionid}`,
-      },
-      body: JSON.stringify(body),
-      signal: controller.signal,
-    });
-  } catch (err) {
-    clearTimeout(timer);
-    throw new Error(err.name === 'AbortError' ? '请求超时' : err.message);
-  } finally {
-    clearTimeout(timer);
+    if (!resp.ok) {
+      const errText = await resp.text().catch(() => '');
+      lastErr = new Error(`即梦返回错误 ${resp.status}: ${errText.slice(0, 300)}`);
+      continue; // 该 key 失败(过期/限流等) → 换下一个
+    }
+
+    // 请求成功，推进游标供下次轮换
+    jimengSessionIndex = (jimengSessionIndex + i + 1) % attempts;
+    const data = await resp.json().catch(() => null);
+    const imgUrl = data?.data?.[0]?.url;
+    if (!imgUrl) {
+      throw new Error(`即梦返回无图片 url：${JSON.stringify(data)?.slice(0, 300)}`);
+    }
+
+    // 下载图片
+    const imgResp = await fetch(imgUrl);
+    if (!imgResp.ok) throw new Error(`图片下载失败: ${imgResp.status}`);
+    return Buffer.from(await imgResp.arrayBuffer());
   }
 
-  if (!resp.ok) {
-    const errText = await resp.text().catch(() => '');
-    throw new Error(`即梦返回错误 ${resp.status}: ${errText.slice(0, 300)}`);
-  }
-
-  const data = await resp.json().catch(() => null);
-  const imgUrl = data?.data?.[0]?.url;
-  if (!imgUrl) {
-    throw new Error(`即梦返回无图片 url：${JSON.stringify(data)?.slice(0, 300)}`);
-  }
-
-  // 下载图片
-  const imgResp = await fetch(imgUrl);
-  if (!imgResp.ok) throw new Error(`图片下载失败: ${imgResp.status}`);
-  return Buffer.from(await imgResp.arrayBuffer());
+  throw lastErr || new Error('即梦请求失败');
 }
 
 // 兼容旧引用：ensureTransferred 里调用 requestJimengImage
@@ -186,13 +213,13 @@ export default class AiDrawPlugin extends plugin {
   constructor() {
     super({
       name: '异世界转生·AI立绘',
-      dsc: '#ai异世界转生：生成转生信息并调用 AI 绘图渲染整卡',
+      dsc: 'ai异世界转生 / #ai异世界转生：生成转生信息并调用 AI 绘图渲染整卡',
       event: 'message',
       priority: 4999,
       rule: [
         {
-          // 不区分大小写：#ai异世界转生 / #AI异世界转生 均可
-          reg: /^#ai异世界转生$/i,
+          // 不区分大小写，且 # 可选：ai异世界转生 / #ai异世界转生 / AI异世界转生 / #AI异世界转生 均可
+          reg: /^#?ai异世界转生$/i,
           fnc: 'aiRebirth',
           permission: 'all',
         },
@@ -214,8 +241,8 @@ export default class AiDrawPlugin extends plugin {
       // 2. 转生 + 生图 + 入库（info 为含 aiImage 的转生信息）
       const { info: baseInfo, aiImageRel, cached } = await ensureTransferredAndAiImage(targetUserId);
 
-      // 2b. RPG 签到 + 把属性点加成叠加到转生四维展示（失败不阻断）
-      const { info, notice } = await afterRebirth(targetUserId, baseInfo);
+      // 2b. RPG 签到 + 把属性点加成叠加到转生四维展示（失败不阻断）；level/exp/expNext 为 RPG 等级与经验进度
+      const { info, notice, level, exp, expNext, expPct, maxed } = await afterRebirth(targetUserId, baseInfo);
 
       // 3. 读取昵称/头像（群聊取群名片，私聊取好友昵称；取不到则用 uid 兜底）
       // 注：不同适配器 getInfo/getAvatarUrl 可能是同步返回字符串或返回 Promise，
@@ -235,6 +262,11 @@ export default class AiDrawPlugin extends plugin {
         content: '测试内容',
         userName: nick,
         avatarUrl,
+        level,
+        exp,
+        expNext,
+        expPct,
+        maxed,
         race: info.race,
         job: info.job,
         gender: info.gender,
@@ -250,8 +282,8 @@ export default class AiDrawPlugin extends plugin {
         aiImageDataUri: fileToDataUri(aiImageRel),
       };
 
-      // 5. 渲染整卡
-      const image = await reRender(renderData);
+      // 5. 渲染整卡（AI 版模板：AI 立绘铺底 + 透明卡 + 等级/经验条）
+      const image = await reRender(renderData, './plugins/rebirth-plugin/resources/rebirth/index.html');
       if (cached) this.reply('（今日 AI 立绘已生成，展示缓存）');
       this.reply(segment.image(image));
       if (notice) this.reply(notice, false, { at: targetUserId });

@@ -39,11 +39,13 @@ const renderHtmlToImage = async (htmlPath, outputPath) => {
 };
 
 // 导出可调用的 reRender 函数
-export const reRender = async (data) => {
+// data: 模板变量；tplFile: 可选，指定要用的 HTML 模板（相对 cwd）。
+//   不传默认用 AI 版 index.html；默认异世界转生(rebirth)传 index_noai.html 用经典无 AI 卡。
+export const reRender = async (data, tplFile = './plugins/rebirth-plugin/resources/rebirth/index.html') => {
   try {
     // 调用模板处理方法
     const htmlPath = path.resolve(rbrenderer.dealTpl('rebirth-plugin', {
-      tplFile: './plugins/rebirth-plugin/resources/rebirth/index.html', // 模板文件路径
+      tplFile,
       ...data // 传入的模板变量
     }));
 

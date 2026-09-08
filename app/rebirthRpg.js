@@ -32,6 +32,7 @@ const EXP_PER_CHECKIN = cfg.expPerCheckin;
 const EXP_COEFF = cfg.expCoeff;
 const EXP_POWER = cfg.expPower;
 const MIN_EXP_TO_NEXT = cfg.minExpToNext;
+const EXP_STEP = cfg.expStepPerLevel ?? 1;   // 等差递增步长；缺省 1（即 10,11,12…）
 const ATTR_POINT_EVERY = cfg.attrPointEveryLevels;
 
 // 可加点的属性（对应转生四维）
@@ -73,8 +74,9 @@ function todayStr() {
 
 // 从当前 level 升到 level+1 所需的经验
 function expToNext(level) {
-  // 曲线递增：round(coeff * (level+1)^power)，且至少为 MIN_EXP_TO_NEXT（默认5）
-  return Math.max(MIN_EXP_TO_NEXT, Math.round(EXP_COEFF * Math.pow(level + 1, EXP_POWER)));
+  // 等差递增：Lv.0→1 需 MIN_EXP_TO_NEXT(=起点)，之后每级再 +EXP_STEP。
+  // 满足「最低起点经验、每下一级比上一级高(严格递增)」，不受幂曲线低端平顶影响。
+  return MIN_EXP_TO_NEXT + level * EXP_STEP;
 }
 
 // 获取玩家记录（无则创建初始 Lv0）
