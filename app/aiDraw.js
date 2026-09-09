@@ -63,6 +63,15 @@ function buildPrompt(info) {
     parts.push(`${info.specialSkill} skill effect`);
   }
 
+  // 随机动作：从 prompt.actions 池取 1 条作为本次动作/姿势描述；
+  // 未配置 actions(空/缺省)时回退到默认动态动作，保证向后兼容。
+  const actions = Array.isArray(p.actions) ? p.actions.filter((a) => typeof a === 'string' && a.trim()) : [];
+  if (actions.length > 0) {
+    parts.push(actions[Math.floor(Math.random() * actions.length)]);
+  } else {
+    parts.push('dynamic action pose, energetic motion');
+  }
+
   let prompt = parts.filter(Boolean).join(', ');
   prompt = prompt.replace(/,(\s*,)+/g, ',').replace(/,\s*$/, '');
   if (p.suffix) prompt += p.suffix;
@@ -238,62 +247,113 @@ export default class AiDrawPlugin extends plugin {
     }
 
     const targetUserId = this.e.at || this.e.user_id;
-    this.reply('正在为你转生并绘制角色，请稍候…');
+    // 状态提示：20s 后自动撤回，避免刷屏
+    this.reply('正在为你转生并绘制角色，请稍候…', false, { recallMsg: 20 });
 
+    // 2. 生成/复用当日转生信息
+    let baseInfo;
     try {
-      // 2. 转生 + 生图 + 入库（info 为含 aiImage 的转生信息）
-      const { info: baseInfo, aiImageRel, cached } = await ensureTransferredAndAiImage(targetUserId);
-
-      // 2b. RPG 签到 + 把属性点加成叠加到转生四维展示（失败不阻断）；level/exp/expNext 为 RPG 等级与经验进度
-      const { info, notice, level, exp, expNext, expPct, maxed } = await afterRebirth(targetUserId, baseInfo);
-
-      // 3. 读取昵称/头像（群聊取群名片，私聊取好友昵称；取不到则用 uid 兜底）
-      // 注：不同适配器 getInfo/getAvatarUrl 可能是同步返回字符串或返回 Promise，
-      // 用 Promise.resolve() 统一包裹后再 catch，避免 “xxx.catch is not a function”
-      const userInfo = await Promise.resolve(Bot.pickFriend(targetUserId).getInfo?.() ?? {}).catch(() => null);
-      let nick = (userInfo && (userInfo.nickname || userInfo.card)) || String(targetUserId);
-      if (this.e.group?.pickMember) {
-        const gm = await Promise.resolve(this.e.group.pickMember(targetUserId).getInfo?.() ?? null).catch(() => null);
-        if (gm && (gm.card || gm.nickname)) nick = gm.card || gm.nickname;
-      }
-      const avatarUrl = await Promise.resolve(Bot.pickFriend(targetUserId).getAvatarUrl?.() ?? '').catch(() => '');
-
-      // 4. 组装渲染数据：aiImageDataUri 用作 HTML 背景
-      const renderData = {
-        user_id: targetUserId,
-        title: '异世界转生',
-        content: '测试内容',
-        userName: nick,
-        avatarUrl,
-        level,
-        exp,
-        expNext,
-        expPct,
-        maxed,
-        race: info.race,
-        job: info.job,
-        gender: info.gender,
-        bodyType: info.bodyType,
-        hairColor: info.hairColor,
-        eyeColor: info.eyeColor,
-        strength: info.strength,
-        agility: info.agility,
-        intelligence: info.intelligence,
-        charisma: info.charisma,
-        luckValue: info.luckValue,
-        specialSkill: info.specialSkill,
-        aiImageDataUri: fileToDataUri(aiImageRel),
-      };
-
-      // 5. 渲染整卡（AI 版模板：AI 立绘铺底 + 透明卡 + 等级/经验条）
-      const image = await reRender(renderData, './plugins/rebirth-plugin/resources/rebirth/index.html');
-      if (cached) this.reply('（今日 AI 立绘已生成，展示缓存）');
-      this.reply(segment.image(image));
-      if (notice) this.reply(notice, false, { at: targetUserId });
+      baseInfo = await getOrCreateRebirthInfo(targetUserId);
     } catch (err) {
-      log('error', `AI 异世界转生执行异常: ${err}`);
+      log('error', `异世界转生信息生成失败: ${err}`);
       this.reply(`生成失败：${err.message}`);
+      return;
     }
+
+    // 3. 先做 RPG 签到/加成（与生图解耦）：即便 AI 绘图失败，签到与升级提示也不受影响
+    let rpg = null;
+    try {
+      rpg = await afterRebirth(targetUserId, baseInfo);
+    } catch (err) {
+      log('warn', `RPG 签到/加成失败(不阻断转生): ${err.message}`);
+    }
+    const notice = (rpg && rpg.notice) || '';
+    const level = (rpg && rpg.level) ?? 0;
+    const exp = (rpg && rpg.exp) ?? 0;
+    const expNext = (rpg && rpg.expNext) ?? 0;
+    const expPct = (rpg && rpg.expPct) ?? 0;
+    const maxed = !!(rpg && rpg.maxed);
+    // 展示信息优先用叠加 RPG 加成后的副本；签到异常时退回原始转生信息
+    const info = (rpg && rpg.info) || baseInfo;
+
+    // 4. 读取昵称/头像（群聊取群名片，私聊取好友昵称；取不到则用 uid 兜底）
+    const userInfo = await Promise.resolve(Bot.pickFriend(targetUserId).getInfo?.() ?? {}).catch(() => null);
+    let nick = (userInfo && (userInfo.nickname || userInfo.card)) || String(targetUserId);
+    if (this.e.group?.pickMember) {
+      const gm = await Promise.resolve(this.e.group.pickMember(targetUserId).getInfo?.() ?? null).catch(() => null);
+      if (gm && (gm.card || gm.nickname)) nick = gm.card || gm.nickname;
+    }
+    const avatarUrl = await Promise.resolve(Bot.pickFriend(targetUserId).getAvatarUrl?.() ?? '').catch(() => '');
+
+    // 5. 尝试生成 AI 立绘（失败不抛错，降级为经典卡展示，签到已在上一步完成）
+    let aiImageRel = null;
+    let cached = false;
+    let aiFailMsg = null;
+    try {
+      const r = await ensureTransferredAndAiImage(targetUserId);
+      aiImageRel = r.aiImageRel;
+      cached = r.cached;
+    } catch (err) {
+      aiFailMsg = err.message || '未知错误';
+      log('warn', `AI 立绘生成失败(已降级): ${aiFailMsg}`);
+    }
+
+    // 6. 组装渲染数据
+    const renderData = {
+      user_id: targetUserId,
+      title: '异世界转生',
+      content: '测试内容',
+      userName: nick,
+      avatarUrl,
+      level,
+      exp,
+      expNext,
+      expPct,
+      maxed,
+      race: info.race,
+      job: info.job,
+      gender: info.gender,
+      bodyType: info.bodyType,
+      hairColor: info.hairColor,
+      eyeColor: info.eyeColor,
+      strength: info.strength,
+      agility: info.agility,
+      intelligence: info.intelligence,
+      charisma: info.charisma,
+      luckValue: info.luckValue,
+      specialSkill: info.specialSkill,
+      // 生图成功 → AI 立绘铺底；失败 → 空，用经典模板展示
+      aiImageDataUri: aiImageRel ? fileToDataUri(aiImageRel) : '',
+    };
+
+    // 7. 渲染整卡：AI 成功用 AI 版模板，失败降级用经典无 AI 模板
+    const tpl = aiImageRel
+      ? './plugins/rebirth-plugin/resources/rebirth/index.html'
+      : './plugins/rebirth-plugin/resources/rebirth/index_noai.html';
+
+    // 8. 单条回复：@用户 + 图片 + 签到/升级提示，不再分多条（群聊加 @，私聊不加）
+    const segs = [];
+    if (this.e.isGroup) segs.push(segment.at(targetUserId));
+    let imgReady = false;
+    try {
+      const image = await reRender(renderData, tpl);
+      segs.push(segment.image(image));
+      imgReady = true;
+    } catch (err) {
+      log('error', `转生卡渲染失败: ${err}`);
+      imgReady = false;
+    }
+
+    // 文字提示：缓存 / 签到升级 / AI 失败说明（图片失败但签到成功时也能看到升级提示）
+    const textParts = [];
+    if (cached && imgReady) textParts.push('（今日 AI 立绘已生成，展示缓存）');
+    if (notice) textParts.push(notice.replace(/^\n+/, '').replace(/\s+$/, ''));
+    if (aiFailMsg && !cached) textParts.push(`AI 立绘生成失败：${aiFailMsg}（转生信息与签到已正常完成）`);
+    if (textParts.length) segs.push('\n' + textParts.filter(Boolean).join('\n'));
+
+    // 兜底：若图片与文字均未能发出，至少给一句状态，避免“空回复”
+    if (segs.length === 0) segs.push('异世界转生信息已为你生成。');
+    this.reply(segs, false);
   }
 }
 

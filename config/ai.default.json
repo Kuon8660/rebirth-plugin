@@ -43,9 +43,22 @@
   },
 
   "prompt": {
-    "stylePrefix": "best quality, masterpiece, highly detailed, fantasy RPG character art, anime style, full body, dynamic action pose, energetic motion",
+    "stylePrefix": "best quality, masterpiece, highly detailed, fantasy RPG character art, anime style, full body",
     "includeSkill": false,
-    "suffix": ", game splash art, impactful combat pose, dynamic motion, detailed scenic illustration background, vibrant colors"
+    "// 动作池 actions：数组，每次渲染随机取 1 条作为本次动作描述（替代旧的固定动作词）": "每条为一句英文动作/姿势/运镜描述，用逗号分隔；可自行增删条目",
+    "actions": [
+      "dynamic action pose, energetic motion",
+      "impactful combat pose, charging forward, battle-ready stance",
+      "mid-air leap, flowing motion, acrobatic agility",
+      "casting a spell, hands glowing with arcane energy, swirling magic",
+      "wielding weapon overhead, powerful swing, dramatic momentum",
+      "heroic standing pose, wind-blown hair and clothes, confident aura",
+      "drawing a bow, focused gaze, ready to release",
+      "graceful flowing motion, clothes and hair drifting in the wind",
+      "kneeling knight pose, sword planted in the ground, solemn aura",
+      "victorious pose, raising weapon skyward, radiant energy burst"
+    ],
+    "suffix": ", game splash art, detailed scenic illustration background, vibrant colors"
   },
 
   "_labelEnMap": {
