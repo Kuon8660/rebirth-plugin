@@ -42,9 +42,19 @@ const ATTR_NAMES = { strength: '力量', agility: '敏捷', intelligence: '智�
 
 // ---------- 建库建表 ----------
 if (!fs.existsSync(rpgDbDir)) fs.mkdirSync(rpgDbDir, { recursive: true });
+
+// 数据库「就绪」信号：连接打开 + rpg_user 建表完成。
+// 其它模块（如收集图鉴）必须 await 它之后再建自己的表，
+// 否则语句可能先于建表执行，报 “no such table” 竞态。
+let markRpgReady;
+const rpgReady = new Promise((resolve) => {
+  markRpgReady = resolve;
+});
+
 const db = new sqlite3.Database(rpgDbPath, (err) => {
   if (err) {
     log('error', `RPG 数据库连接失败: ${err.message}`);
+    markRpgReady();
     return;
   }
   db.run(
@@ -63,6 +73,7 @@ const db = new sqlite3.Database(rpgDbPath, (err) => {
     (e2) => {
       if (e2) log('error', `RPG 建表失败: ${e2.message}`);
       else log('info', 'RPG 表已创建');
+      markRpgReady();
     },
   );
 });
@@ -183,11 +194,12 @@ async function getBonus(userId) {
 // 面板文本
 async function formatPanel(userId) {
   const p = await getPlayer(userId);
-  const need = level < MAX_LEVEL ? expToNext(p.level) : 0;
-  const next = p.level >= MAX_LEVEL ? '已满级' : `距 Lv${p.level + 1} 还需 ${need - p.exp} 经验`;
+  const maxed = p.level >= MAX_LEVEL;
+  const need = maxed ? 0 : expToNext(p.level);
+  const next = maxed ? '已满级' : `距 Lv${p.level + 1} 还需 ${need - p.exp} 经验`;
   const lines = [
     `—— 异世界等级 Lv.${p.level} / Lv.${MAX_LEVEL} ——`,
-    `经验：${p.exp} / ${p.level >= MAX_LEVEL ? 'MAX' : expToNext(p.level)}`,
+    `经验：${p.exp} / ${maxed ? 'MAX' : expToNext(p.level)}`,
     next,
     `可用属性点：${p.points}`,
     `力量 +${p.bonus_strength} | 敏捷 +${p.bonus_agility} | 智力 +${p.bonus_intelligence} | 魅力 +${p.bonus_charisma}`,
@@ -196,4 +208,4 @@ async function formatPanel(userId) {
   return lines.join('\n');
 }
 
-export { db as rpgDb, expToNext, todayStr, getPlayer, dailyCheckIn, allocatePoint, getBonus, formatPanel, ATTR_KEYS, ATTR_NAMES, MAX_LEVEL };
+export { db as rpgDb, rpgReady, expToNext, todayStr, getPlayer, dailyCheckIn, allocatePoint, getBonus, formatPanel, ATTR_KEYS, ATTR_NAMES, MAX_LEVEL };

@@ -13,5 +13,13 @@ docs/
 config/*.json
 !config/*.default.json
 
+# ===== 种族/职业属性配置（属于内容，必须入库） =====
+# config/races/*.json、config/jobs/*.json 一个种族/职业一个文件，
+# 启动时由 app/rebirthData.js 扫描加载（上面的 config/*.json 只匹配 config 直属文件，不会命中子目录）
+!config/races/
+!config/jobs/
+!config/races/*.json
+!config/jobs/*.json
+
 # ===== 开发测试草稿 =====
 app/apptest.js

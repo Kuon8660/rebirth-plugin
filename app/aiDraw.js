@@ -5,6 +5,7 @@ import { loadConfig } from './config.js';
 import { reRender } from './reRender.js';
 import { getOrCreateRebirthInfo, updateAiImage } from './rebirthCore.js';
 import { afterRebirth } from './rpgHook.js';
+import { collectAndReport } from './rebirthCollection.js';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -267,6 +268,8 @@ export default class AiDrawPlugin extends plugin {
     } catch (err) {
       log('warn', `RPG 签到/加成失败(不阻断转生): ${err.message}`);
     }
+    // 收集图鉴：登记本次种族/职业并生成进度文本（失败不阻断）
+    const collectText = await collectAndReport(targetUserId, baseInfo, baseInfo.isNew);
     const notice = (rpg && rpg.notice) || '';
     const level = (rpg && rpg.level) ?? 0;
     const exp = (rpg && rpg.exp) ?? 0;
@@ -347,6 +350,7 @@ export default class AiDrawPlugin extends plugin {
     // 文字提示：缓存 / 签到升级 / AI 失败说明（图片失败但签到成功时也能看到升级提示）
     const textParts = [];
     if (cached && imgReady) textParts.push('（今日 AI 立绘已生成，展示缓存）');
+    if (collectText) textParts.push(collectText);
     if (notice) textParts.push(notice.replace(/^\n+/, '').replace(/\s+$/, ''));
     if (aiFailMsg && !cached) textParts.push(`AI 立绘生成失败：${aiFailMsg}（转生信息与签到已正常完成）`);
     if (textParts.length) segs.push('\n' + textParts.filter(Boolean).join('\n'));

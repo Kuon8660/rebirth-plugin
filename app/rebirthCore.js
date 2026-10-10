@@ -3,6 +3,7 @@ import path from 'path';
 import sqlite3 from 'sqlite3';
 import { log } from './log.js';
 import { loadConfig } from './config.js';
+import { getRaces, getJobs, getRaceModifiers, getJobModifiers } from './rebirthData.js';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -82,32 +83,47 @@ function getRandomElement(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 读取用户转生信息（无则返回 null）
+// 本地日期 yyyy-mm-dd（与 createdTime 的日期部分格式一致）
+function todayStr() {
+  const n = new Date();
+  return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+}
+
+// 读取用户「今日」的转生信息（无则返回 null）。
+// ⚠️ 必须按创建日期过滤：rebirth_info 是「当日转生缓存」，
+// 由 clearOldData() 的午夜定时器清空；但 bot 若停机跨天后再启动，表里会残留旧日期的行。
+// 若只判断“行是否存在”，就会把旧转生误判为“今日已转生”→ 复用旧数据、且跳过收集图鉴。
 function getRebirthInfo(userId) {
   return new Promise((resolve, reject) => {
-    db.get('SELECT * FROM rebirth_info WHERE user_id = ?', [userId], (err, row) => {
-      if (err) {
-        log('error', `查询数据库失败: ${err.message}`);
-        return reject(new Error('查询数据库失败'));
-      }
-      resolve(row || null);
-    });
+    db.get(
+      'SELECT * FROM rebirth_info WHERE user_id = ? AND substr(createdTime, 1, 10) = ?',
+      [userId, todayStr()],
+      (err, row) => {
+        if (err) {
+          log('error', `查询数据库失败: ${err.message}`);
+          return reject(new Error('查询数据库失败'));
+        }
+        resolve(row || null);
+      },
+    );
   });
 }
 
 // 若用户当日尚无转生信息，则随机生成并入库；否则直接返回已有记录。
-// 返回一个干净的转生信息对象（含 aiImage 字段，可能为 null）。
+// 返回一个干净的转生信息对象（含 aiImage 字段，可能为 null）；
+// 附带的 isNew 标记本次是否为新生成（供收集图鉴判断是否计入新收集，不入库）。
 async function getOrCreateRebirthInfo(userId) {
   const exist = await getRebirthInfo(userId);
   if (exist) {
     log('info', `用户 ${userId} 已有转生信息，直接复用`);
-    return exist;
+    return { ...exist, isNew: false };
   }
 
+  // 种族/职业列表与其四维加成来自 config/races、config/jobs 目录（启动时扫描）
   const newInfo = {
     user_id: userId,
-    race: getRandomElement(rebirth.races),
-    job: getRandomElement(rebirth.jobs),
+    race: getRandomElement(getRaces()),
+    job: getRandomElement(getJobs()),
     gender: getRandomElement(rebirth.genders),
     bodyType: getRandomElement(rebirth.bodyTypes),
     hairColor: getRandomElement(rebirth.hairColors),
@@ -118,8 +134,8 @@ async function getOrCreateRebirthInfo(userId) {
   };
 
   // 根据种族和职业调整属性
-  const raceModifiers = rebirth.raceModifiers[newInfo.race] || {};
-  const jobModifiers = rebirth.jobModifiers[newInfo.job] || {};
+  const raceModifiers = getRaceModifiers(newInfo.race);
+  const jobModifiers = getJobModifiers(newInfo.job);
   newInfo.strength =
     Math.floor(Math.random() * 10) + 1 + (raceModifiers.strength || 0) + (jobModifiers.strength || 0);
   newInfo.agility =
@@ -128,6 +144,12 @@ async function getOrCreateRebirthInfo(userId) {
     Math.floor(Math.random() * 10) + 1 + (raceModifiers.intelligence || 0) + (jobModifiers.intelligence || 0);
   newInfo.charisma =
     Math.floor(Math.random() * 10) + 1 + (raceModifiers.charisma || 0) + (jobModifiers.charisma || 0);
+
+  // 先清掉该用户可能残留的旧日转生行（user_id 是主键，旧行会让 INSERT 主键冲突；
+  // 上面按日期查询已确保这里不会命中“今日”的有效行）。
+  await new Promise((resolve) => {
+    db.run('DELETE FROM rebirth_info WHERE user_id = ?', [userId], () => resolve());
+  });
 
   await new Promise((resolve, reject) => {
     db.run(
@@ -151,7 +173,8 @@ async function getOrCreateRebirthInfo(userId) {
       },
     );
   });
-  return newInfo;
+  // 标记为新生成：收集图鉴据此把这次的种族/职业计入“新收集”
+  return { ...newInfo, isNew: true };
 }
 
 // 更新用户的 AI 图片路径

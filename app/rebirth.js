@@ -5,6 +5,7 @@ import { loadConfig } from './config.js';
 import { reRender } from './reRender.js';
 import { getOrCreateRebirthInfo } from './rebirthCore.js';
 import { afterRebirth } from './rpgHook.js';
+import { collectAndReport } from './rebirthCollection.js';
 import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -36,6 +37,9 @@ export default class RebirthPlugin extends plugin {
     // 生成或复用该用户当日转生信息（rebirthCore 统一管理数据库）
     const base = await getOrCreateRebirthInfo(targetUserId);
     log("info", `异世界转生用户名为：${targetUserId}`);
+
+    // 收集图鉴：登记本次种族/职业，并拿到给用户看的收集进度文本（失败不阻断转生）
+    const collectText = await collectAndReport(targetUserId, base, base.isNew);
 
     // RPG 签到 + 把属性点加成叠加到四维（失败不阻断）；level/exp/expNext 为 RPG 等级与经验进度
     const { info, notice, level, exp, expNext, expPct, maxed } = await afterRebirth(targetUserId, base);
@@ -89,8 +93,9 @@ export default class RebirthPlugin extends plugin {
       this.reply(this.formatRebirthInfo(renderData), true, { at: targetUserId });
     }
 
-    // 追加 RPG 签到/升级提示
-    if (notice) this.reply(notice, false, { at: targetUserId });
+    // 追加「收集进度」与 RPG 签到/升级提示（合并为一条，避免刷屏）
+    const extra = [collectText, (notice || '').replace(/^\n+/, '')].filter(Boolean).join('\n');
+    if (extra) this.reply(extra, false, { at: targetUserId });
   }
 
   formatRebirthInfo(info) {
