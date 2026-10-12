@@ -1,8 +1,8 @@
 # ===== 依赖 / 运行时产物 =====
 node_modules/
 data/
+# tmp/ 下含转生卡渲染产物(tmp/rebirth/)与 AI 立绘(tmp/rebirth/ai/)，均不入库
 tmp/
-resources/rebirth/ai/
 
 # ===== 本地文档（不入库） =====
 docs/
@@ -15,7 +15,7 @@ config/*.json
 
 # ===== 种族/职业属性配置（属于内容，必须入库） =====
 # config/races/*.json、config/jobs/*.json 一个种族/职业一个文件，
-# 启动时由 app/rebirthData.js 扫描加载（上面的 config/*.json 只匹配 config 直属文件，不会命中子目录）
+# 启动时由 app/core/data.js 扫描加载（上面的 config/*.json 只匹配 config 直属文件，不会命中子目录）
 !config/races/
 !config/jobs/
 !config/races/*.json

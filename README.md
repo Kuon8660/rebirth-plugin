@@ -56,4 +56,27 @@ config/jobs/战士.json         # 职业：文件名即职业名
   其中的 `races`/`jobs` 仅用于首次初始化导出单文件，以及目录为空时的兜底。
 - `config/rpg.default.json`：等级曲线、签到经验、属性点规则。
 - `config/ai.default.json`：即梦生图（需填 `jimeng.sessionid`）。
-- 运行时 `config/*.json` 不入库，缺失时由 `app/config.js` 从 `*.default.json` 自动生成。
+- 运行时 `config/*.json` 不入库，缺失时由 `app/core/infra.js` 从 `*.default.json` 自动生成。
+
+## 代码结构
+
+按「运行逻辑」分层，共 **6 个模块**（`app/` 下）：
+
+```
+app/
+├─ index.js        入口：启动自检（配置 + 种族职业扫描）+ 导出 3 个命令类
+├─ commands.js     接口层：`异世界转生` / `#?ai异世界转生` / `#异世界加点·等级`
+└─ core/
+    ├─ infra.js    基础层：日志 · 配置 · 路径/日期/随机/文件/用户信息 · SQLite 连接
+    ├─ data.js     数据层：内容目录 · 转生信息 · RPG 等级 · 收集图鉴（全部持久化读写）
+    ├─ image.js    产出层：转生卡 HTML→图片渲染 · 即梦 AI 文生图
+    └─ flow.js     编排层：签到/加成钩子 · 收集登记 · AI 立绘流水线 · 卡片数据组装
+```
+
+依赖严格单向：`commands → flow → data/image → infra`，无环。改 `config/*.json`、`core/infra.js`、`core/data.js`、`core/image.js` 需重启 bot。
+
+### 产物位置
+
+- 转生卡片图：`tmp/rebirth/{日期}-{QQ}.png`
+- AI 立绘原图：`tmp/rebirth/ai/{QQ}_{yyyyMMdd}.png`
+- 均在 `tmp/`（已被 gitignore）内，可随时清理；清理后下次转生会自动重新生成。

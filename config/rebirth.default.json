@@ -1,7 +1,7 @@
 {
   "_readme": [
     "注意：种族(races)与职业(jobs)的【运行时数据源】已改为 config/races、config/jobs 目录",
-    "（一个种族/职业一个 JSON 文件，启动时由 app/rebirthData.js 扫描加载）。",
+    "（一个种族/职业一个 JSON 文件，启动时由 app/core/rebirthData.js 扫描加载）。",
     "本文件里的 races/jobs/raceModifiers/jobModifiers 仅在【首次初始化】用于导出单文件，",
     "以及目录读不到内容时作为极端兜底；日常改种族/职业请改 config/races、config/jobs。",
     "本文件仍负责：genders/bodyTypes/hairColors/eyeColors/specialSkills 等外观与技能词条。"

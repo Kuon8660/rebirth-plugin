@@ -1,6 +1,6 @@
 {
   "name": "rebirth-plugin",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "A plugin for handling rebirth functionalities.",
   "main": "index.js",
   "author": "Kuon8660",
